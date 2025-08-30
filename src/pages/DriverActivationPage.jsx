@@ -52,8 +52,9 @@ const DriverActivationPage = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
+        console.log('🚀 Starting account activation...');
+        console.log('📝 Form data:', formData);
 
         // Validation
         if (!formData.phone || !formData.studentId || !formData.university || !formData.address) {
@@ -63,6 +64,7 @@ const DriverActivationPage = () => {
 
         try {
             setIsActivating(true);
+            console.log('📡 Sending activation request to:', `${API_BASE_URL}/driver/activate/${token}`);
             const response = await fetch(`${API_BASE_URL}/driver/activate/${token}`, {
                 method: 'POST',
                 headers: {
@@ -72,11 +74,14 @@ const DriverActivationPage = () => {
             });
 
             const data = await response.json();
+            console.log('📡 Activation response:', data);
 
             if (data.success) {
+                console.log('✅ Account activation successful!');
                 toast.success('Account activated successfully! Welcome to Greep SDS! You can now login using OTP.');
                 setTimeout(() => navigate('/'), 2000);
             } else {
+                console.error('❌ Activation failed:', data.error);
                 toast.error(data.error || 'Failed to activate account');
             }
         } catch (error) {
@@ -153,7 +158,7 @@ const DriverActivationPage = () => {
 
                 {/* Activation Form */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-6">
                         {/* Contact Information */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -236,7 +241,8 @@ const DriverActivationPage = () => {
 
                         {/* Submit Button */}
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             disabled={isActivating}
                             className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                         >
@@ -249,7 +255,7 @@ const DriverActivationPage = () => {
                                 'Complete Account Setup'
                             )}
                         </button>
-                    </form>
+                    </div>
                 </div>
 
                 {/* OTP Information */}

@@ -25,6 +25,20 @@ class SystemSettingsService {
             return response.data;
         } catch (error) {
             console.error('Error fetching driver settings:', error);
+
+            // Return default settings for 403/401 errors to prevent app crashes
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                console.warn('Driver settings endpoint forbidden - returning defaults');
+                return {
+                    success: true,
+                    data: {
+                        earnings: { minimumPayout: 50, payoutSchedule: 'weekly' },
+                        notifications: { pushEnabled: true, emailEnabled: true },
+                        delivery: { maxDistance: 50, autoAccept: false }
+                    }
+                };
+            }
+
             throw error;
         }
     }

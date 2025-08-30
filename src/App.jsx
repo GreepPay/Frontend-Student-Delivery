@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -8,6 +8,7 @@ import { SystemSettingsProvider } from './context/SystemSettingsContext';
 import { BroadcastProvider } from './context/BroadcastContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import DevPanel from './components/common/DevPanel';
 import LoginPage from './pages/LoginPage';
 import OTPVerification from './components/auth/OTPVerification';
 import AdminLayout from './components/layouts/AdminLayout';
@@ -64,6 +65,24 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const [showDevPanel, setShowDevPanel] = useState(false);
+
+  // Development panel toggle with keyboard shortcut
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Ctrl/Cmd + Shift + D to toggle dev panel
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+        event.preventDefault();
+        setShowDevPanel(prev => !prev);
+      }
+    };
+
+    if (process.env.NODE_ENV === 'development') {
+      document.addEventListener('keydown', handleKeyPress);
+      return () => document.removeEventListener('keydown', handleKeyPress);
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -73,6 +92,9 @@ function App() {
               <ToastProvider>
                 <BroadcastProvider>
                   <div className="App">
+                    {/* Development Panel */}
+                    <DevPanel isOpen={showDevPanel} onClose={() => setShowDevPanel(false)} />
+
                     <Routes>
                       <Route path="/" element={<LoginPage />} />
                       <Route path="/verify-otp" element={<OTPVerification />} />

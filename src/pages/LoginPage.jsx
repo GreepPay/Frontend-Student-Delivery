@@ -171,7 +171,7 @@ const LoginPage = () => {
                     break;
                 case 429:
                     errorMessage = data?.message || 'Too many login attempts. Please wait a moment before trying again.';
-                    errorType = 'rateLimit';
+                    errorType = 'error';
                     break;
                 case 500:
                     errorMessage = data?.message || 'Server error. Please try again later.';
@@ -248,7 +248,7 @@ const LoginPage = () => {
                     duration: 5000,
                 });
                 break;
-            case 'rateLimit':
+            case 'error':
                 toast.error(errorMessage, {
                     duration: 6000,
                 });
@@ -272,8 +272,7 @@ const LoginPage = () => {
         return { message: errorMessage, type: errorType };
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setErrors({});
 
         // Client-side validation
@@ -447,7 +446,7 @@ const LoginPage = () => {
 
                     {/* Form */}
                     <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-4">
                             {/* Email */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -566,7 +565,8 @@ const LoginPage = () => {
 
                             {/* Submit Button */}
                             <Button
-                                type="submit"
+                                type="button"
+                                onClick={handleSubmit}
                                 loading={loading}
                                 loadingText="Sending..."
                                 fullWidth={true}
@@ -574,7 +574,7 @@ const LoginPage = () => {
                             >
                                 Continue
                             </Button>
-                        </form>
+                        </div>
                     </div>
 
                     {/* Footer */}

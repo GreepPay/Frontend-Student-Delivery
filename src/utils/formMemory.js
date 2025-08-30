@@ -361,7 +361,7 @@ class FormMemory {
      */
     isSimilarData(data1, data2) {
         // Consider forms similar if key fields match
-        const keyFields = ['customerName', 'customerPhone', 'pickupLocation', 'deliveryLocation'];
+        const keyFields = ['customerName', 'customerPhone', 'pickupLocationDescription', 'deliveryLocationDescription'];
 
         return keyFields.every(field => {
             const val1 = data1[field] || '';

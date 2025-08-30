@@ -205,7 +205,7 @@ const DeliveryBroadcastModal = ({ delivery, onAccept, onClose, onExpire }) => {
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-gray-900 text-sm mb-1">Pickup Location</h4>
-                                    <p className="text-gray-700 text-sm font-medium">{delivery.pickupLocation}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{delivery.pickupLocationDescription || delivery.pickupLocation}</p>
                                     {delivery.pickupLocationDescription && (
                                         <p className="text-xs text-gray-500 mt-1">
                                             {delivery.pickupLocationDescription}
@@ -222,7 +222,7 @@ const DeliveryBroadcastModal = ({ delivery, onAccept, onClose, onExpire }) => {
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-gray-900 text-sm mb-1">Delivery Location</h4>
-                                    <p className="text-gray-700 text-sm font-medium">{delivery.deliveryLocation}</p>
+                                    <p className="text-gray-700 text-sm font-medium">{delivery.deliveryLocationDescription || delivery.deliveryLocation}</p>
                                     {delivery.deliveryLocationDescription && (
                                         <p className="text-xs text-gray-500 mt-1">
                                             {delivery.deliveryLocationDescription}

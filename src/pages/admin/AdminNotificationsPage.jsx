@@ -480,14 +480,14 @@ const AdminNotificationsPage = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                {/* Header - Responsive */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
                     <div className="flex items-center space-x-3">
                         <div className="p-2 bg-green-100 rounded-lg">
-                            <BellIcon className="w-4 h-4 text-green-600" />
+                            <BellIcon className="w-5 h-5 sm:w-4 sm:h-4 text-green-600" />
                         </div>
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Notifications</h1>
+                            <h1 className="text-2xl sm:text-xl lg:text-2xl font-bold text-gray-900">Admin Notifications</h1>
                             <p className="text-sm text-gray-600 mt-1">Manage system notifications and alerts</p>
                         </div>
                     </div>
@@ -496,50 +496,52 @@ const AdminNotificationsPage = () => {
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="px-3 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center space-x-1"
+                                className="px-4 py-2 sm:px-3 sm:py-1.5 bg-green-600 text-white text-sm sm:text-xs rounded hover:bg-green-700 flex items-center space-x-1"
                             >
-                                <CheckIcon className="w-3 h-3" />
+                                <CheckIcon className="w-4 h-4 sm:w-3 sm:h-3" />
                                 <span>Mark all as read</span>
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* Filters */}
+                {/* Filters - Responsive */}
                 <div className="mb-4">
-                    <div className="flex items-center space-x-3">
-                        <span className="text-xs font-medium text-gray-700">Filter:</span>
-                        {['all', 'unread', 'read', 'driver_active', 'system_alert', 'analytics', 'payment'].map((filterOption) => (
-                            <button
-                                key={filterOption}
-                                onClick={() => setFilter(filterOption)}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${filter === filterOption
-                                    ? 'bg-green-100 text-green-700 border border-green-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                {filterOption.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </button>
-                        ))}
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                        <span className="text-sm sm:text-xs font-medium text-gray-700">Filter:</span>
+                        <div className="flex flex-wrap gap-2">
+                            {['all', 'unread', 'read', 'driver_active', 'system_alert', 'analytics', 'payment'].map((filterOption) => (
+                                <button
+                                    key={filterOption}
+                                    onClick={() => setFilter(filterOption)}
+                                    className={`px-3 py-2 sm:px-2 sm:py-1 rounded text-sm sm:text-xs font-medium transition-colors ${filter === filterOption
+                                        ? 'bg-green-100 text-green-700 border border-green-200'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {filterOption.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                {/* Notifications List */}
+                {/* Notifications List - Responsive */}
                 <div className="space-y-3">
                     {filteredNotifications.length === 0 ? (
                         <div className="text-center py-8">
-                            <BellIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm font-medium text-gray-900">No notifications</p>
-                            <p className="text-xs text-gray-500">No notifications match the current filter.</p>
+                            <BellIcon className="w-12 h-12 sm:w-8 sm:h-8 text-gray-400 mx-auto mb-4 sm:mb-2" />
+                            <p className="text-lg sm:text-sm font-medium text-gray-900 mb-2 sm:mb-1">No notifications</p>
+                            <p className="text-sm sm:text-xs text-gray-500">No notifications match the current filter.</p>
                         </div>
                     ) : (
                         filteredNotifications.map((notification) => (
                             <div
                                 key={notification._id}
-                                className={`bg-white rounded-lg border p-4 transition-colors ${notification.isRead ? 'border-gray-200' : 'border-green-200 bg-green-50'
+                                className={`bg-white rounded-lg border p-4 sm:p-3 transition-colors ${notification.isRead ? 'border-gray-200' : 'border-green-200 bg-green-50'
                                     }`}
                             >
-                                <div className="flex items-start justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
                                     <div className="flex items-start space-x-3 flex-1">
                                         {/* Icon */}
                                         <div className={`p-2 rounded-lg ${getTypeColor(notification.type)}`}>
@@ -548,8 +550,8 @@ const AdminNotificationsPage = () => {
 
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center space-x-2 mb-1">
-                                                <h3 className="text-sm font-medium text-gray-900 truncate">
+                                            <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-1">
+                                                <h3 className="text-base sm:text-sm font-medium text-gray-900 truncate">
                                                     {notification.title}
                                                 </h3>
                                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(notification.priority)}`}>
@@ -559,27 +561,28 @@ const AdminNotificationsPage = () => {
                                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                            <p className="text-sm sm:text-xs text-gray-600 mb-3 sm:mb-2 line-clamp-2">
                                                 {notification.message}
                                             </p>
-                                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                            <div className="flex items-center space-x-4 text-sm sm:text-xs text-gray-500">
                                                 <span className="flex items-center space-x-1">
-                                                    <ClockIcon className="w-3 h-3" />
+                                                    <ClockIcon className="w-4 h-4 sm:w-3 sm:h-3" />
                                                     <span>{formatTime(notification.createdAt || notification.timestamp || notification.date)}</span>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Actions */}
-                                    <div className="flex items-center space-x-1 ml-4">
+                                    {/* Actions - Responsive */}
+                                    <div className="flex items-center justify-end space-x-2 sm:space-x-1 sm:ml-4">
                                         {!notification.isRead && (
                                             <button
                                                 onClick={() => markAsRead(notification._id)}
-                                                className="text-green-600 hover:text-green-900 p-1"
+                                                className="px-3 py-2 sm:p-1 text-green-600 hover:text-green-900 rounded hover:bg-green-50 flex items-center space-x-1 sm:space-x-0"
                                                 title="Mark as read"
                                             >
-                                                <CheckIcon className="w-3 h-3" />
+                                                <CheckIcon className="w-4 h-4 sm:w-3 sm:h-3" />
+                                                <span className="sm:hidden text-sm">Mark as read</span>
                                             </button>
                                         )}
                                         <button
@@ -587,17 +590,19 @@ const AdminNotificationsPage = () => {
                                                 setSelectedNotification(notification);
                                                 setShowDetailsModal(true);
                                             }}
-                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                            className="px-3 py-2 sm:p-1 text-blue-600 hover:text-blue-900 rounded hover:bg-blue-50 flex items-center space-x-1 sm:space-x-0"
                                             title="View details"
                                         >
-                                            <InformationCircleIcon className="w-3 h-3" />
+                                            <InformationCircleIcon className="w-4 h-4 sm:w-3 sm:h-3" />
+                                            <span className="sm:hidden text-sm">View details</span>
                                         </button>
                                         <button
                                             onClick={() => deleteNotification(notification._id)}
-                                            className="text-red-600 hover:text-red-900 p-1"
+                                            className="px-3 py-2 sm:p-1 text-red-600 hover:text-red-900 rounded hover:bg-red-50 flex items-center space-x-1 sm:space-x-0"
                                             title="Delete notification"
                                         >
-                                            <XMarkIcon className="w-3 h-3" />
+                                            <XMarkIcon className="w-4 h-4 sm:w-3 sm:h-3" />
+                                            <span className="sm:hidden text-sm">Delete</span>
                                         </button>
                                     </div>
                                 </div>
@@ -607,7 +612,7 @@ const AdminNotificationsPage = () => {
                 </div>
             </div>
 
-            {/* Details Modal */}
+            {/* Details Modal - Responsive */}
             <Modal
                 isOpen={showDetailsModal && !!selectedNotification}
                 onClose={() => setShowDetailsModal(false)}
@@ -616,22 +621,22 @@ const AdminNotificationsPage = () => {
             >
                 <div className="space-y-6">
                     <div>
-                        <h4 className="text-lg font-semibold text-gray-900 mb-2">{selectedNotification?.title}</h4>
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <p className="text-gray-700 leading-relaxed">{selectedNotification?.message}</p>
+                        <h4 className="text-lg sm:text-base font-semibold text-gray-900 mb-3 sm:mb-2">{selectedNotification?.title}</h4>
+                        <div className="bg-gray-50 p-4 sm:p-3 rounded-lg border border-gray-200">
+                            <p className="text-gray-700 leading-relaxed text-sm sm:text-xs">{selectedNotification?.message}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                            <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                <span className="text-gray-900 capitalize">{selectedNotification?.type}</span>
+                            <label className="block text-sm sm:text-xs font-medium text-gray-700 mb-2 sm:mb-1">Type</label>
+                            <div className="bg-white p-3 sm:p-2 rounded-lg border border-gray-200">
+                                <span className="text-gray-900 capitalize text-sm sm:text-xs">{selectedNotification?.type}</span>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                            <div className="bg-white p-3 rounded-lg border border-gray-200">
+                            <label className="block text-sm sm:text-xs font-medium text-gray-700 mb-2 sm:mb-1">Priority</label>
+                            <div className="bg-white p-3 sm:p-2 rounded-lg border border-gray-200">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedNotification?.priority === 'high'
                                     ? 'bg-red-100 text-red-800'
                                     : selectedNotification?.priority === 'medium'
@@ -645,42 +650,45 @@ const AdminNotificationsPage = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Created</label>
-                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                        <label className="block text-sm sm:text-xs font-medium text-gray-700 mb-2 sm:mb-1">Created</label>
+                        <div className="bg-white p-3 sm:p-2 rounded-lg border border-gray-200">
                             <div className="flex items-center text-gray-900">
-                                <ClockIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                {(() => {
-                                    try {
-                                        const date = selectedNotification?.createdAt;
-                                        if (!date) return 'Unknown';
-                                        const dateObj = date instanceof Date ? date : new Date(date);
-                                        if (isNaN(dateObj.getTime())) return 'Invalid Date';
-                                        return dateObj.toLocaleString();
-                                    } catch (error) {
-                                        console.warn('⚠️ Error formatting date in modal:', error);
-                                        return 'Invalid Date';
-                                    }
-                                })()}
+                                <ClockIcon className="h-4 w-4 sm:h-3 sm:w-3 mr-2 text-gray-500" />
+                                <span className="text-sm sm:text-xs">
+                                    {(() => {
+                                        try {
+                                            const date = selectedNotification?.createdAt;
+                                            if (!date) return 'Unknown';
+                                            const dateObj = date instanceof Date ? date : new Date(date);
+                                            if (isNaN(dateObj.getTime())) return 'Invalid Date';
+                                            return dateObj.toLocaleString();
+                                        } catch (error) {
+                                            console.warn('⚠️ Error formatting date in modal:', error);
+                                            return 'Invalid Date';
+                                        }
+                                    })()}
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     {selectedNotification?.metadata && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Metadata</label>
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <pre className="text-sm text-gray-700 overflow-auto whitespace-pre-wrap">
+                            <label className="block text-sm sm:text-xs font-medium text-gray-700 mb-2 sm:mb-1">Metadata</label>
+                            <div className="bg-gray-50 p-4 sm:p-3 rounded-lg border border-gray-200">
+                                <pre className="text-sm sm:text-xs text-gray-700 overflow-auto whitespace-pre-wrap max-h-32 sm:max-h-24">
                                     {JSON.stringify(selectedNotification.metadata, null, 2)}
                                 </pre>
                             </div>
                         </div>
                     )}
 
-                    <div className="flex space-x-3 pt-4">
+                    <div className="flex space-x-3 pt-4 sm:pt-3">
                         <Button
                             onClick={() => setShowDetailsModal(false)}
                             variant="secondary"
                             fullWidth
+                            className="px-4 py-2 sm:px-3 sm:py-2 text-sm sm:text-xs"
                         >
                             Close
                         </Button>

@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import SearchableDropdown from '../common/SearchableDropdown';
+// Removed SearchableDropdown import since we're not using it anymore
 import driverService from '../../services/driverService';
-import apiService from '../../services/api';
 import toast from 'react-hot-toast';
 import Button from '../ui/Button';
 
 const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const [loadingReferralCodes, setLoadingReferralCodes] = useState(false);
-    const [availableReferralCodes, setAvailableReferralCodes] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -17,29 +14,11 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
         referralCode: ''
     });
 
-    // Fetch available referral codes when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            fetchAvailableReferralCodes();
-        }
-    }, [isOpen]);
 
 
 
-    const fetchAvailableReferralCodes = async () => {
-        setLoadingReferralCodes(true);
-        try {
-            const response = await apiService.getAvailableReferralCodes();
-            if (response.success && response.data) {
-                setAvailableReferralCodes(response.data.referralCodes || []);
-            }
-        } catch (error) {
-            console.warn('Failed to fetch referral codes:', error);
-            // Don't show error toast - this is not critical
-        } finally {
-            setLoadingReferralCodes(false);
-        }
-    };
+
+
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -48,9 +27,7 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
+    const handleSubmit = async () => {
         // Validation
         if (!formData.name || !formData.email) {
             toast.error('Please fill in all required fields');
@@ -131,7 +108,7 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
                 </div>
 
                 {/* Compact Form - Side by Side Layout */}
-                <form onSubmit={handleSubmit} className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex overflow-hidden">
                     <div className="flex w-full">
                         {/* Left Side - Form Fields */}
                         <div className="w-1/2 p-4 border-r border-gray-200">
@@ -164,36 +141,25 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
                                     />
                                 </div>
 
-                                <SearchableDropdown
-                                    label="Referral Code"
-                                    options={[
-                                        { value: '', label: 'No referral code' },
-                                        ...availableReferralCodes.map(code => ({
-                                            value: code.referralCode,
-                                            label: code.referralCode,
-                                            driverName: code.driverName
-                                        }))
-                                    ]}
-                                    value={formData.referralCode}
-                                    onChange={(value) => handleInputChange('referralCode', value)}
-                                    placeholder="Enter or select referral code"
-                                    searchPlaceholder="Search referral codes..."
-                                    loading={loadingReferralCodes}
-                                    emptyMessage="No referral codes available"
-                                    allowClear={true}
-                                    className="text-sm"
-                                    maxHeight="max-h-40"
-                                    renderOption={(option, isSelected) => (
-                                        option.value === '' ? (
-                                            <span className="text-gray-700 italic">{option.label}</span>
-                                        ) : (
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-gray-900">{option.label}</span>
-                                                <span className="text-xs text-gray-500">by {option.driverName}</span>
-                                            </div>
-                                        )
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Referral Code
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={formData.referralCode}
+                                            onChange={(e) => handleInputChange('referralCode', e.target.value)}
+                                            placeholder="Enter referral code"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        />
+                                    </div>
+                                    {formData.referralCode && (
+                                        <div className="mt-1 text-xs text-blue-600">
+                                            📝 Referral code will be validated on submission
+                                        </div>
                                     )}
-                                />
+                                </div>
                             </div>
                         </div>
 
@@ -254,7 +220,7 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
 
                 {/* Compact Actions */}
                 <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">

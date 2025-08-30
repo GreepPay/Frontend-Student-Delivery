@@ -551,31 +551,33 @@ const SimpleNotifications = () => {
                     )}
                 </button>
 
-                {/* Dropdown */}
+                {/* Dropdown - Responsive */}
                 {showDropdown && (
-                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
-                        <div className="p-4 border-b border-gray-200">
+                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 sm:w-72 bg-white rounded-lg shadow-xl border z-50 max-h-[80vh] sm:max-h-96">
+                        <div className="p-4 sm:p-3 border-b border-gray-200">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-gray-900">Notifications</h3>
+                                <h3 className="font-semibold text-gray-900 text-base sm:text-sm">Notifications</h3>
                                 <div className="flex items-center space-x-2">
                                     <button
                                         onClick={handleViewAllNotifications}
                                         className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center"
                                     >
                                         <EyeIcon className="h-3 w-3 mr-1" />
-                                        View All
+                                        <span className="hidden sm:inline">View All</span>
+                                        <span className="sm:hidden">All</span>
                                     </button>
                                     {notifications.filter(n => !n.isRead).length > 0 && (
                                         <button
                                             onClick={markAllAsRead}
                                             className="text-xs text-green-600 hover:text-green-700 font-medium"
                                         >
-                                            Mark all read
+                                            <span className="hidden sm:inline">Mark all read</span>
+                                            <span className="sm:hidden">Read all</span>
                                         </button>
                                     )}
 
                                     <button onClick={() => setShowDropdown(false)}>
-                                        <XMarkIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                                        <XMarkIcon className="h-5 w-5 sm:h-4 sm:w-4 text-gray-400 hover:text-gray-600" />
                                     </button>
                                 </div>
                             </div>
@@ -587,7 +589,7 @@ const SimpleNotifications = () => {
                             </div>
                         </div>
 
-                        <div className="max-h-64 overflow-y-auto">
+                        <div className="max-h-64 sm:max-h-56 overflow-y-auto">
                             {notifications.length === 0 ? (
                                 <div className="p-4 text-center text-gray-500">
                                     No notifications
@@ -598,24 +600,24 @@ const SimpleNotifications = () => {
                                         <div
                                             key={notification.id}
                                             onClick={() => handleNotificationClick(notification)}
-                                            className={`p-3 border-b last:border-b-0 cursor-pointer transition-colors ${notification.priority === 'high' ? 'bg-red-50' :
+                                            className={`p-3 sm:p-2 border-b last:border-b-0 cursor-pointer transition-colors ${notification.priority === 'high' ? 'bg-red-50' :
                                                 !notification.isRead ? 'bg-green-50' : 'bg-gray-50'
                                                 } ${!notification.isRead ? 'hover:bg-green-100' : 'hover:bg-gray-100'}`}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
-                                                    <div className="flex items-start space-x-3">
+                                                    <div className="flex items-start space-x-3 sm:space-x-2">
                                                         {!notification.isRead && (
                                                             <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center space-x-2 mb-1">
-                                                                <span className="text-lg">{getNotificationIcon(notification.type)}</span>
-                                                                <p className={`text-sm font-medium ${getNotificationColor(notification.type, notification.priority)}`}>
+                                                                <span className="text-lg sm:text-base">{getNotificationIcon(notification.type)}</span>
+                                                                <p className={`text-sm sm:text-xs font-medium ${getNotificationColor(notification.type, notification.priority)} line-clamp-2`}>
                                                                     {notification.message}
                                                                 </p>
                                                             </div>
-                                                            <div className="flex items-center justify-between">
+                                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
                                                                 <span className="text-xs text-gray-500 flex items-center">
                                                                     <ClockIcon className="h-3 w-3 mr-1" />
                                                                     {formatTimeAgo(notification.timestamp)}
@@ -623,51 +625,51 @@ const SimpleNotifications = () => {
                                                                 {notification.sender && (
                                                                     <span className="text-xs text-gray-500 flex items-center">
                                                                         <UserIcon className="h-3 w-3 mr-1" />
-                                                                        {notification.sender}
+                                                                        <span className="truncate">{notification.sender}</span>
                                                                     </span>
                                                                 )}
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    {/* Enhanced Emergency Alert Information */}
+                                                    {/* Enhanced Emergency Alert Information - Responsive */}
                                                     {(() => {
                                                         if (notification.type === 'emergency' && notification.emergencyData) {
                                                             return (
                                                                 <div className="mt-2 p-2 bg-red-100 rounded border border-red-200">
                                                                     <div className="text-xs space-y-1">
-                                                                        <div className="flex items-center space-x-2">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
                                                                             <span className="font-medium text-red-800">Driver:</span>
-                                                                            <span className="text-red-700">{notification.emergencyData.driverName}</span>
+                                                                            <span className="text-red-700 truncate">{notification.emergencyData.driverName}</span>
                                                                         </div>
-                                                                        <div className="flex items-center space-x-2">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
                                                                             <span className="font-medium text-red-800">Phone:</span>
-                                                                            <span className="text-red-700">{notification.emergencyData.driverPhone}</span>
+                                                                            <span className="text-red-700 truncate">{notification.emergencyData.driverPhone}</span>
                                                                         </div>
-                                                                        <div className="flex items-center space-x-2">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
                                                                             <span className="font-medium text-red-800">Email:</span>
-                                                                            <span className="text-red-700">{notification.emergencyData.driverEmail}</span>
+                                                                            <span className="text-red-700 truncate">{notification.emergencyData.driverEmail}</span>
                                                                         </div>
-                                                                        <div className="flex items-center space-x-2">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
                                                                             <span className="font-medium text-red-800">Area:</span>
-                                                                            <span className="text-red-700">{notification.emergencyData.driverArea}</span>
+                                                                            <span className="text-red-700 truncate">{notification.emergencyData.driverArea}</span>
                                                                         </div>
                                                                         <div className="mt-2 pt-2 border-t border-red-200">
                                                                             <p className="text-xs font-medium text-red-800 mb-1">Quick Actions:</p>
-                                                                            <div className="space-y-1">
+                                                                            <div className="flex flex-wrap gap-1">
                                                                                 <button
                                                                                     onClick={() => window.open(`tel:${notification.emergencyData.driverPhone}`, '_blank')}
                                                                                     className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
                                                                                     disabled={!notification.emergencyData.driverPhone || notification.emergencyData.driverPhone === 'No phone available'}
                                                                                 >
-                                                                                    📞 Call Driver
+                                                                                    📞 Call
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => window.open(`mailto:${notification.emergencyData.driverEmail}`, '_blank')}
-                                                                                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 ml-1"
+                                                                                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
                                                                                     disabled={!notification.emergencyData.driverEmail || notification.emergencyData.driverEmail === 'No email available'}
                                                                                 >
-                                                                                    📧 Email Driver
+                                                                                    📧 Email
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => {
@@ -675,7 +677,7 @@ const SimpleNotifications = () => {
                                                                                         setReplyMessage('');
                                                                                         setShowReplyModal(true);
                                                                                     }}
-                                                                                    className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 ml-1"
+                                                                                    className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
                                                                                 >
                                                                                     💬 Reply
                                                                                 </button>

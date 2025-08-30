@@ -8,6 +8,7 @@ import apiService from '../../services/api';
 import { ProfilePageSkeleton } from '../../components/common/SkeletonLoader';
 import { compressImage } from '../../services/cloudinaryService';
 import { capitalizeName } from '../../utils/capitalize';
+import { isDriverVerified, getVerificationStatus } from '../../utils/verificationHelpers';
 import toast from 'react-hot-toast';
 import Button from '../../components/ui/Button';
 import {
@@ -635,18 +636,47 @@ const DriverProfilePage = () => {
 
                             {/* Verification Status */}
                             <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 justify-center lg:justify-start">
-                                {profile?.verification?.studentVerified && (
-                                    <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm">
-                                        <ShieldCheckIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                        Student Verified
-                                    </div>
-                                )}
-                                {profile?.completion?.readyForDeliveries && (
-                                    <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm">
-                                        <CheckCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                        Ready for Deliveries
-                                    </div>
-                                )}
+                                {(() => {
+                                    const verificationStatus = getVerificationStatus(profile);
+                                    const isVerified = isDriverVerified(profile);
+
+                                    // Debug verification status
+                                    console.log('🔍 Verification status debug:', {
+                                        isVerified,
+                                        verificationStatus,
+                                        profileVerification: profile?.verification,
+                                        profileStatus: profile?.status,
+                                        profileIsVerified: profile?.isVerified,
+                                        profileVerified: profile?.verified,
+                                        profileVerificationStatus: profile?.verificationStatus,
+                                        profileAccountStatus: profile?.accountStatus,
+                                        profileDocuments: profile?.documents,
+                                        profileCompletion: profile?.profileCompletion,
+                                        profileComplete: profile?.profileComplete
+                                    });
+
+                                    return (
+                                        <>
+                                            {isVerified ? (
+                                                <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm">
+                                                    <ShieldCheckIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                                    Student Verified
+                                                </div>
+                                            ) : (
+                                                <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs sm:text-sm">
+                                                    <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                                    Verification Pending
+                                                </div>
+                                            )}
+                                            {profile?.completion?.readyForDeliveries && (
+                                                <div className="inline-flex items-center px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm">
+                                                    <CheckCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                                    Ready for Deliveries
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>

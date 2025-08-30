@@ -63,7 +63,22 @@ export const SystemSettingsProvider = ({ children }) => {
             setLoaded(prev => ({ ...prev, driver: true }));
         } catch (error) {
             console.error('Error loading driver settings:', error);
-            setError('Failed to load driver settings');
+
+            // Don't show error to users for 403/401 - just use defaults
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                console.warn('Driver settings access forbidden - using default settings');
+                // Set default driver settings to prevent UI breaks
+                setSettings(prev => ({
+                    ...prev,
+                    driver: {
+                        earnings: { minimumPayout: 50, payoutSchedule: 'weekly' },
+                        notifications: { pushEnabled: true, emailEnabled: true },
+                        delivery: { maxDistance: 50, autoAccept: false }
+                    }
+                }));
+            } else {
+                setError('Failed to load driver settings');
+            }
         } finally {
             setLoading(prev => ({ ...prev, driver: false }));
         }

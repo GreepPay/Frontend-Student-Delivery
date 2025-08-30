@@ -541,7 +541,7 @@ const DashboardContent = () => {
                     </div>
 
                     {/* Helpful message for new drivers or when data is missing */}
-                    {currentData && (
+                    {/* {currentData && (
                         (currentData.deliveries === 0 || currentData.totalDeliveries === 0) ||
                         (dashboardData?.performance?.rating === 0 || dashboardData?.summary?.rating === 0)
                     ) && (
@@ -561,7 +561,7 @@ const DashboardContent = () => {
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                 </div>
 
                 {/* Content Grid */}

@@ -44,19 +44,45 @@ const ReferralPage = () => {
             }
 
             // Load referral data
+            console.log('🔍 Loading referral data for user:', user._id || user.id);
             const codeResponse = await apiService.getDriverReferralCode(user._id || user.id);
             const statsResponse = await apiService.getDriverReferralStats(user._id || user.id);
 
+            console.log('🔍 API Responses:', {
+                codeResponse: codeResponse,
+                statsResponse: statsResponse,
+                user: user._id || user.id
+            });
+
             if (codeResponse.success && statsResponse.success) {
+                // The API returns referralsGiven and referralReceived, not referralsAsReferrer
                 const mergedData = {
                     ...statsResponse.data,
-                    referralCode: codeResponse.data.referralCode || codeResponse.data.referralCode
+                    referralCode: codeResponse.data.referralCode || codeResponse.data.referralCode,
+                    // Map the correct referral data structure
+                    referrals: statsResponse.data.referrals || [],
+                    referralsAsReferrer: statsResponse.data.referrals || [],
+                    referralsGiven: statsResponse.data.referralsGiven || { total: 0, pending: 0, completed: 0, expired: 0, totalPoints: 0 },
+                    referralReceived: statsResponse.data.referralReceived
                 };
+                console.log('🔍 Referral data debug:', {
+                    statsResponse: statsResponse.data,
+                    codeResponse: codeResponse.data,
+                    mergedData,
+                    referrals: statsResponse.data.referrals,
+                    referralsCount: statsResponse.data.referrals?.length || 0,
+                    referralsGiven: statsResponse.data.referralsGiven,
+                    referralReceived: statsResponse.data.referralReceived
+                });
                 setReferralData(mergedData);
             } else if (codeResponse.success) {
                 setReferralData(codeResponse.data);
             } else if (statsResponse.success) {
-                setReferralData(statsResponse.data);
+                setReferralData({
+                    ...statsResponse.data,
+                    referrals: statsResponse.data.referrals || [],
+                    referralsAsReferrer: statsResponse.data.referrals || []
+                });
             }
 
             // Load points data
@@ -145,66 +171,66 @@ const ReferralPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Referral Program</h1>
-                    <p className="text-gray-600 mt-2">Earn points by referring new drivers to our platform</p>
+                <div className="mb-4 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Referral Program</h1>
+                    <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Earn points by referring new drivers to our platform</p>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm p-6 border border-green-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm p-4 sm:p-6 border border-green-200">
                         <div className="flex items-center">
-                            <div className="p-3 bg-green-500 rounded-lg">
-                                <GiftIcon className="h-6 w-6 text-white" />
+                            <div className="p-2 sm:p-3 bg-green-500 rounded-lg">
+                                <GiftIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-green-700">Total Points</p>
-                                <p className="text-2xl font-bold text-green-900">
+                            <div className="ml-3 sm:ml-4">
+                                <p className="text-xs sm:text-sm font-medium text-green-700">Total Points</p>
+                                <p className="text-lg sm:text-2xl font-bold text-green-900">
                                     {pointsData?.totalPoints || 0}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm p-6 border border-blue-200">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm p-4 sm:p-6 border border-blue-200">
                         <div className="flex items-center">
-                            <div className="p-3 bg-blue-500 rounded-lg">
-                                <CurrencyDollarIcon className="h-6 w-6 text-white" />
+                            <div className="p-2 sm:p-3 bg-blue-500 rounded-lg">
+                                <CurrencyDollarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-blue-700">Available Points</p>
-                                <p className="text-2xl font-bold text-blue-900">
+                            <div className="ml-3 sm:ml-4">
+                                <p className="text-xs sm:text-sm font-medium text-blue-700">Available Points</p>
+                                <p className="text-lg sm:text-2xl font-bold text-blue-900">
                                     {pointsData?.availablePoints || 0}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm p-6 border border-purple-200">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm p-4 sm:p-6 border border-purple-200">
                         <div className="flex items-center">
-                            <div className="p-3 bg-purple-500 rounded-lg">
-                                <UserGroupIcon className="h-6 w-6 text-white" />
+                            <div className="p-2 sm:p-3 bg-purple-500 rounded-lg">
+                                <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-purple-700">Active Referrals</p>
-                                <p className="text-2xl font-bold text-purple-900">
+                            <div className="ml-3 sm:ml-4">
+                                <p className="text-xs sm:text-sm font-medium text-purple-700">Active Referrals</p>
+                                <p className="text-lg sm:text-2xl font-bold text-purple-900">
                                     {referralData?.activeReferrals || 0}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-sm p-6 border border-yellow-200">
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-sm p-4 sm:p-6 border border-yellow-200">
                         <div className="flex items-center">
-                            <div className="p-3 bg-yellow-500 rounded-lg">
-                                <TrophyIcon className="h-6 w-6 text-white" />
+                            <div className="p-2 sm:p-3 bg-yellow-500 rounded-lg">
+                                <TrophyIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-yellow-700">Total Earned</p>
-                                <p className="text-2xl font-bold text-yellow-900">
+                            <div className="ml-3 sm:ml-4">
+                                <p className="text-xs sm:text-sm font-medium text-yellow-700">Total Earned</p>
+                                <p className="text-lg sm:text-2xl font-bold text-yellow-900">
                                     {pointsData?.totalPoints || 0}
                                 </p>
                             </div>
@@ -214,36 +240,36 @@ const ReferralPage = () => {
 
                 {/* Referral Code Section */}
                 {referralData && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900">Your Referral Code</h2>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-0">Your Referral Code</h2>
                             <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-500">Status: Active</span>
-                                <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                                <span className="text-xs sm:text-sm text-gray-500">Status: Active</span>
+                                <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                             </div>
                         </div>
-                        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Share this code with new drivers:</p>
-                                    <div className="flex items-center space-x-4">
-                                        <div className="bg-white px-4 py-2 rounded-lg border border-green-300">
-                                            <p className="font-mono text-lg font-bold text-green-600">
+                        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                                <div className="flex-1">
+                                    <p className="text-xs sm:text-sm text-gray-600 mb-2">Share this code with new drivers:</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                        <div className="bg-white px-3 sm:px-4 py-2 rounded-lg border border-green-300">
+                                            <p className="font-mono text-sm sm:text-lg font-bold text-green-600 text-center sm:text-left">
                                                 {formatReferralCode(referralData.referralCode)}
                                             </p>
                                         </div>
                                         <button
                                             onClick={copyReferralCode}
-                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
                                         >
                                             Copy
                                         </button>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm text-gray-600 mb-1">Rewards</p>
-                                    <p className="text-sm font-medium text-gray-900">You: {configData?.activationBonus?.referrerPoints || 15} points</p>
-                                    <p className="text-sm font-medium text-gray-900">Friend: {configData?.activationBonus?.refereePoints || 5} points</p>
+                                <div className="text-center lg:text-right">
+                                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Rewards</p>
+                                    <p className="text-xs sm:text-sm font-medium text-gray-900">You: {configData?.activationBonus?.referrerPoints || 15} points</p>
+                                    <p className="text-xs sm:text-sm font-medium text-gray-900">Friend: {configData?.activationBonus?.refereePoints || 5} points</p>
                                 </div>
                             </div>
                         </div>
@@ -251,8 +277,8 @@ const ReferralPage = () => {
                 )}
 
                 {/* Tab Navigation */}
-                <div className="mb-8">
-                    <nav className="flex space-x-8">
+                <div className="mb-4 sm:mb-8">
+                    <nav className="flex flex-wrap space-x-4 sm:space-x-8 overflow-x-auto pb-2">
                         {[
                             { id: 'overview', name: 'Overview', icon: ChartBarIcon },
                             { id: 'rewards', name: 'Reward Structure', icon: GiftIcon },
@@ -262,12 +288,12 @@ const ReferralPage = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                                className={`flex items-center space-x-1 sm:space-x-2 py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === tab.id
                                     ? 'border-green-500 text-green-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
-                                <tab.icon className="h-5 w-5" />
+                                <tab.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                                 <span>{tab.name}</span>
                             </button>
                         ))}
@@ -276,39 +302,39 @@ const ReferralPage = () => {
 
                 {/* Tab Content */}
                 {activeTab === 'overview' && (
-                    <div className="space-y-8">
+                    <div className="space-y-4 sm:space-y-8">
                         {/* How It Works */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">How It Works</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">How It Works</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <UserIcon className="h-6 w-6 text-green-600" />
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                        <UserIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                                     </div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">1. Share Your Code</h3>
-                                    <p className="text-sm text-gray-600">Share your referral code with new drivers</p>
+                                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">1. Share Your Code</h3>
+                                    <p className="text-xs sm:text-sm text-gray-600">Share your referral code with new drivers</p>
                                 </div>
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <TruckIcon className="h-6 w-6 text-blue-600" />
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                        <TruckIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                                     </div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">2. They Complete Deliveries</h3>
-                                    <p className="text-sm text-gray-600">New drivers complete their first {configData?.activationBonus?.requiredDeliveries || 3} deliveries</p>
+                                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">2. They Complete Deliveries</h3>
+                                    <p className="text-xs sm:text-sm text-gray-600">New drivers complete their first {configData?.activationBonus?.requiredDeliveries || 3} deliveries</p>
                                 </div>
                                 <div className="text-center">
-                                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <GiftIcon className="h-6 w-6 text-purple-600" />
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                        <GiftIcon className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                                     </div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">3. Earn Points</h3>
-                                    <p className="text-sm text-gray-600">You both earn points and continue earning on every delivery</p>
+                                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">3. Earn Points</h3>
+                                    <p className="text-xs sm:text-sm text-gray-600">You both earn points and continue earning on every delivery</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h3>
                                 <div className="space-y-3">
                                     <button
                                         onClick={() => setShowRedeemModal(true)}
@@ -328,8 +354,8 @@ const ReferralPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Program Status</h3>
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Program Status</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                         <div className="flex items-center">
@@ -359,12 +385,12 @@ const ReferralPage = () => {
                 )}
 
                 {activeTab === 'rewards' && (
-                    <div className="space-y-8">
+                    <div className="space-y-4 sm:space-y-8">
                         {/* Reward Structure */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Reward Structure</h2>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Reward Structure</h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                                 {/* Activation Bonus */}
                                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                                     <div className="flex items-center mb-3">
@@ -481,9 +507,9 @@ const ReferralPage = () => {
                 )}
 
                 {activeTab === 'referrals' && (
-                    <div className="space-y-8">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">My Referrals</h2>
+                    <div className="space-y-4 sm:space-y-8">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">My Referrals</h2>
 
                             {referralData?.referrals && referralData.referrals.length > 0 ? (
                                 <div className="space-y-4">
@@ -555,10 +581,10 @@ const ReferralPage = () => {
                 )}
 
                 {activeTab === 'history' && (
-                    <div className="space-y-8">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900">Points History</h2>
+                    <div className="space-y-4 sm:space-y-8">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Points History</h2>
                                 <button
                                     onClick={() => setShowRedeemModal(true)}
                                     disabled={!pointsData?.availablePoints || pointsData.availablePoints <= 0}

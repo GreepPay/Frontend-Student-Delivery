@@ -14,8 +14,26 @@ import {
 } from '@heroicons/react/24/outline';
 import apiService from '../../services/api';
 import toast from 'react-hot-toast';
+import RecentActivityWidget from '../../components/admin/RecentActivityWidget';
 
 const ReferralRewardsAdmin = () => {
+    // Helper function to format profit margin display
+    const formatProfitMargin = (profitMargin) => {
+        if (profitMargin === undefined || profitMargin === null) {
+            return '—';
+        }
+
+        if (typeof profitMargin === 'string') {
+            return profitMargin; // "N/A" or other string values
+        }
+
+        if (typeof profitMargin === 'number') {
+            return `${profitMargin.toFixed(1)}%`;
+        }
+
+        return '—';
+    };
+
     const [configurations, setConfigurations] = useState([]);
     const [profitabilityAnalysis, setProfitabilityAnalysis] = useState(null);
     const [leaderboard, setLeaderboard] = useState(null);
@@ -222,7 +240,7 @@ const ReferralRewardsAdmin = () => {
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-purple-700">Profit Margin</p>
                                 <p className="text-2xl font-bold text-purple-900">
-                                    {profitabilityAnalysis?.profitMargin || 0}%
+                                    {formatProfitMargin(profitabilityAnalysis?.profitMargin)}
                                 </p>
                             </div>
                         </div>
@@ -320,25 +338,7 @@ const ReferralRewardsAdmin = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">New referral completed</p>
-                                            <p className="text-xs text-gray-500">2 minutes ago</p>
-                                        </div>
-                                        <span className="text-sm text-green-600">+20 points</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">Configuration updated</p>
-                                            <p className="text-xs text-gray-500">1 hour ago</p>
-                                        </div>
-                                        <span className="text-sm text-blue-600">Updated</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <RecentActivityWidget limit={5} />
                         </div>
                     </div>
                 )}
@@ -456,7 +456,9 @@ const ReferralRewardsAdmin = () => {
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600">Profit Margin:</span>
-                                                <span className="font-medium text-green-600">{profitabilityAnalysis.profitMargin || 0}%</span>
+                                                <span className="font-medium text-green-600">
+                                                    {formatProfitMargin(profitabilityAnalysis?.profitMargin)}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

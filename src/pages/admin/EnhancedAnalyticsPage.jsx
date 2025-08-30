@@ -19,29 +19,29 @@ import { toast } from 'react-hot-toast';
 
 // Skeleton Loader Components
 const SkeletonMetricCard = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
         <div className="flex items-center justify-between">
             <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-16 mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-20"></div>
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-20 sm:w-24 mb-1 sm:mb-2"></div>
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16 mb-1"></div>
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-16 sm:w-20"></div>
             </div>
-            <div className="p-3 rounded-lg bg-gray-200 w-12 h-12"></div>
+            <div className="p-2 sm:p-3 rounded-lg bg-gray-200 w-10 h-10 sm:w-12 sm:h-12"></div>
         </div>
     </div>
 );
 
 const SkeletonTable = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-        <div className="space-y-3">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
+        <div className="h-4 sm:h-6 bg-gray-200 rounded w-24 sm:w-32 mb-3 sm:mb-4"></div>
+        <div className="space-y-2 sm:space-y-3">
             {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-20"></div>
+                <div key={i} className="flex justify-between items-center p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-200 rounded-full"></div>
+                        <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20"></div>
                     </div>
-                    <div className="h-4 bg-gray-200 rounded w-12"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-10 sm:w-12"></div>
                 </div>
             ))}
         </div>
@@ -49,24 +49,24 @@ const SkeletonTable = () => (
 );
 
 const SkeletonChart = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-        <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
+        <div className="h-4 sm:h-6 bg-gray-200 rounded w-24 sm:w-32 mb-3 sm:mb-4"></div>
+        <div className="h-48 sm:h-64 bg-gray-50 rounded-lg flex items-center justify-center">
             <div className="text-center">
-                <div className="w-12 h-12 bg-gray-200 rounded mx-auto mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-24"></div>
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded mx-auto mb-1 sm:mb-2"></div>
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-24 sm:w-32 mb-1"></div>
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-20 sm:w-24"></div>
             </div>
         </div>
     </div>
 );
 
 const SkeletonSummary = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-gray-50 rounded-lg p-4 text-center animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-20 mx-auto"></div>
+            <div key={i} className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center animate-pulse">
+                <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16 mx-auto mb-1 sm:mb-2"></div>
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 mx-auto"></div>
             </div>
         ))}
     </div>
@@ -249,11 +249,11 @@ const EnhancedAnalyticsPage = () => {
 
     // Metric card component
     const MetricCard = ({ title, value, subtitle, icon: Icon, color, trend }) => (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">{title}</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{value}</p>
                     {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
                     {trend && (
                         <div className={`flex items-center mt-2 text-xs ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -266,8 +266,8 @@ const EnhancedAnalyticsPage = () => {
                         </div>
                     )}
                 </div>
-                <div className={`p-3 rounded-lg bg-${color}-100`}>
-                    <Icon className={`w-6 h-6 text-${color}-600`} />
+                <div className={`p-2 sm:p-3 rounded-lg bg-${color}-100`}>
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${color}-600`} />
                 </div>
             </div>
         </div>
@@ -345,9 +345,9 @@ const EnhancedAnalyticsPage = () => {
         });
 
         return (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                     <MetricCard
                         title="Total Drivers"
                         value={core?.totalDrivers || 0}
@@ -379,27 +379,27 @@ const EnhancedAnalyticsPage = () => {
                 </div>
 
                 {/* Driver Status */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Driver Status</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Driver Status</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">{core?.activeDrivers || 0}</div>
-                            <div className="text-sm text-gray-600">Active Drivers</div>
+                            <div className="text-lg sm:text-2xl font-bold text-green-600">{core?.activeDrivers || 0}</div>
+                            <div className="text-xs sm:text-sm text-gray-600">Active Drivers</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-600">{core?.onlineDrivers || 0}</div>
-                            <div className="text-sm text-gray-600">Online Now</div>
+                            <div className="text-lg sm:text-2xl font-bold text-blue-600">{core?.onlineDrivers || 0}</div>
+                            <div className="text-xs sm:text-sm text-gray-600">Online Now</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-600">{documents?.verificationRate || 0}%</div>
-                            <div className="text-sm text-gray-600">Verification Rate</div>
+                            <div className="text-lg sm:text-2xl font-bold text-purple-600">{documents?.verificationRate || 0}%</div>
+                            <div className="text-xs sm:text-sm text-gray-600">Verification Rate</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Document Verification Progress */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Document Verification</h3>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Document Verification</h3>
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">Verification Rate</span>
@@ -1987,22 +1987,22 @@ const EnhancedAnalyticsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 space-y-4">
+        <div className="min-h-screen bg-gray-50 space-y-3 sm:space-y-4">
             {/* Header */}
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between">
+            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-4 sm:p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Analytics & Insights</h1>
-                        <p className="text-sm text-gray-600 mt-1">Comprehensive platform analytics and business intelligence</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Analytics & Insights</h1>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">Comprehensive platform analytics and business intelligence</p>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                         {/* Period Selector */}
                         <div className="flex items-center space-x-2">
                             <CalendarIcon className="w-4 h-4 text-gray-400" />
                             <select
                                 value={selectedPeriod}
                                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                className="text-xs sm:text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                             >
                                 {timePeriods.map(period => (
                                     <option key={period.key} value={period.key}>
@@ -2016,17 +2016,19 @@ const EnhancedAnalyticsPage = () => {
                         <button
                             onClick={handleExportData}
                             disabled={exporting || !analyticsData}
-                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                            className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             {exporting ? (
                                 <>
-                                    <ArrowPathIcon className="w-4 h-4 mr-1 animate-spin" />
-                                    Generating PDF...
+                                    <ArrowPathIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 animate-spin" />
+                                    <span className="hidden sm:inline">Generating PDF...</span>
+                                    <span className="sm:hidden">Generating...</span>
                                 </>
                             ) : (
                                 <>
-                                    <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
-                                    Export PDF Report
+                                    <DocumentArrowDownIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                    <span className="hidden sm:inline">Export PDF Report</span>
+                                    <span className="sm:hidden">Export</span>
                                 </>
                             )}
                         </button>
@@ -2035,12 +2037,12 @@ const EnhancedAnalyticsPage = () => {
                         <button
                             onClick={loadAnalyticsData}
                             disabled={loading}
-                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                            className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             {loading ? (
-                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                <ArrowPathIcon className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                             ) : (
-                                <ArrowPathIcon className="w-4 h-4" />
+                                <ArrowPathIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                             )}
                         </button>
                     </div>
@@ -2048,20 +2050,20 @@ const EnhancedAnalyticsPage = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center space-x-1 overflow-x-auto">
+            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-3 sm:p-4">
+                <div className="flex items-center space-x-1 overflow-x-auto pb-2">
                     {analyticsSections.map(section => {
                         const Icon = section.icon;
                         return (
                             <button
                                 key={section.key}
                                 onClick={() => setSelectedSection(section.key)}
-                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedSection === section.key
+                                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${selectedSection === section.key
                                     ? `bg-${section.color}-100 text-${section.color}-700 border border-${section.color}-200`
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                                     }`}
                             >
-                                <Icon className="w-4 h-4" />
+                                <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                                 <span>{section.label}</span>
                             </button>
                         );
@@ -2070,48 +2072,48 @@ const EnhancedAnalyticsPage = () => {
             </div>
 
             {/* Content */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {loading || sectionLoading[selectedSection] ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         {/* Skeleton for Overview when initially loading */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                             {[...Array(4)].map((_, i) => (
                                 <SkeletonMetricCard key={i} />
                             ))}
                         </div>
 
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-                            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
+                            <div className="h-4 sm:h-6 bg-gray-200 rounded w-24 sm:w-32 mb-3 sm:mb-4"></div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="text-center">
-                                        <div className="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-20 mx-auto"></div>
+                                        <div className="h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16 mx-auto mb-1 sm:mb-2"></div>
+                                        <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 mx-auto"></div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-                            <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
-                            <div className="space-y-3">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
+                            <div className="h-4 sm:h-6 bg-gray-200 rounded w-32 sm:w-40 mb-3 sm:mb-4"></div>
+                            <div className="space-y-2 sm:space-y-3">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="flex justify-between items-center">
-                                        <div className="h-4 bg-gray-200 rounded w-24"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-12"></div>
+                                        <div className="h-3 sm:h-4 bg-gray-200 rounded w-20 sm:w-24"></div>
+                                        <div className="h-3 sm:h-4 bg-gray-200 rounded w-10 sm:w-12"></div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
                 ) : !analyticsData ? (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                        <ExclamationTriangleIcon className="h-12 w-12 text-red-400 mx-auto" />
-                        <h3 className="text-lg font-medium text-gray-900 mt-4">No Analytics Data</h3>
-                        <p className="text-sm text-gray-600 mt-2">Unable to load analytics data. Please try again.</p>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
+                        <ExclamationTriangleIcon className="h-8 w-8 sm:h-12 sm:w-12 text-red-400 mx-auto" />
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 mt-3 sm:mt-4">No Analytics Data</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-2">Unable to load analytics data. Please try again.</p>
                         <button
                             onClick={loadAnalyticsData}
-                            className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                            className="mt-3 sm:mt-4 px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             Retry Loading
                         </button>

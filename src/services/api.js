@@ -1,6 +1,6 @@
 import axios from 'axios';
-import rateLimiter from '../utils/rateLimiter';
 import requestDeduplicator from '../utils/requestDeduplicator';
+import devHelpers from '../utils/devHelpers';
 import toast from 'react-hot-toast';
 
 // Request deduplication to prevent duplicate API calls
@@ -84,10 +84,9 @@ api.interceptors.response.use(
             });
         }
 
-        // Handle rate limiting (429 errors)
+        // Handle 429 errors (server rate limiting)
         if (error.response?.status === 429) {
-            console.warn('⚠️ Rate limit exceeded. Request throttled.');
-            // Show toast for rate limiting
+            console.warn('⚠️ Server rate limit exceeded.');
             toast.error('Too many requests. Please wait a moment before trying again.', {
                 duration: 4000,
             });
@@ -1560,16 +1559,7 @@ class ApiService {
         const requestKey = `${endpoint}?lat=${lat}&lng=${lng}`;
 
         return requestDeduplicator.execute(requestKey, async () => {
-            // Check rate limiting
-            if (!rateLimiter.canMakeRequest(endpoint)) {
-                const waitTime = rateLimiter.getTimeUntilNextRequest(endpoint);
-                console.warn(`⚠️ Rate limited for ${endpoint}, waiting ${waitTime}ms`);
-                return {
-                    success: false,
-                    message: `Rate limited. Please wait ${Math.ceil(waitTime / 1000)} seconds before trying again.`,
-                    data: { broadcasts: [] }
-                };
-            }
+            // Rate limiting removed - all requests allowed
 
             console.log('📡 API Service: Getting active broadcasts for location:', lat, lng);
             const params = lat && lng ? `?lat=${lat}&lng=${lng}` : '';
@@ -1917,6 +1907,11 @@ class ApiService {
     // Admin referral endpoints
     async getReferralAdminStats() {
         const response = await api.get('/referral/admin/statistics');
+        return response.data;
+    }
+
+    async getReferralRecentActivity(limit = 10) {
+        const response = await api.get(`/referral/admin/recent-activity?limit=${limit}`);
         return response.data;
     }
 

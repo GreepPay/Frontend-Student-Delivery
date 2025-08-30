@@ -25,6 +25,7 @@ import {
 import socketService from '../../services/socketService';
 import { capitalizeName } from '../../utils/nameUtils';
 import VerifiedBadge from '../common/VerifiedBadge';
+import { isDriverVerified } from '../../utils/verificationHelpers';
 
 // Create context for driver status
 const DriverStatusContext = createContext();
@@ -270,10 +271,24 @@ const DriverLayout = ({ children }) => {
                                                 <div className="text-sm font-medium text-gray-900">
                                                     {capitalizeName(profile?.fullName || profile?.name || user?.name || 'Driver')}
                                                 </div>
-                                                <VerifiedBadge
-                                                    isVerified={true} // Force to show to replace red icon
-                                                    size="xs"
-                                                />
+                                                {(() => {
+                                                    const verified = isDriverVerified(user || profile);
+                                                    console.log('🔍 Header verification status:', {
+                                                        verified,
+                                                        user: user?.id,
+                                                        profile: profile?.id,
+                                                        userVerification: user?.verification,
+                                                        profileVerification: profile?.verification,
+                                                        userStatus: user?.status,
+                                                        profileStatus: profile?.status
+                                                    });
+                                                    return (
+                                                        <VerifiedBadge
+                                                            isVerified={verified}
+                                                            size="xs"
+                                                        />
+                                                    );
+                                                })()}
                                             </div>
                                             <div className="text-xs text-gray-500">
                                                 {user?.email || 'aguntawisdom@gmail.com'}

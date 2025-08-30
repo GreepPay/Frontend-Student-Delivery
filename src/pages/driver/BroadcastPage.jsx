@@ -20,7 +20,7 @@ import { useSystemSettings } from '../../context/SystemSettingsContext';
 import BroadcastSkeleton from '../../components/common/BroadcastSkeleton';
 import { useDeliveryBroadcast } from '../../components/driver/DeliveryBroadcastProvider';
 import { useBroadcasts } from '../../context/BroadcastContext';
-import rateLimiter from '../../utils/rateLimiter';
+
 
 const BroadcastPage = () => {
     const { formatCurrency } = useSystemSettings();
@@ -311,7 +311,7 @@ const BroadcastPage = () => {
     useEffect(() => {
         updateLocationInContext();
 
-        // Auto-refresh every 3 minutes (reduced frequency to avoid rate limiting)
+        // Auto-refresh every 3 minutes
         const interval = setInterval(() => {
             if (!loading) {
                 updateLocationInContext();
@@ -560,13 +560,12 @@ const BroadcastPage = () => {
 
                         <button
                             onClick={() => {
-                                console.log('🧪 Clear rate limiter');
-                                rateLimiter.clearEndpoint('/delivery/broadcast/active');
+                                console.log('🧪 Rate limiting removed');
                                 fetchBroadcasts();
                             }}
-                            className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                         >
-                            Clear Rate Limit
+                            Rate Limiting Disabled
                         </button>
                         <button
                             onClick={() => {
@@ -943,7 +942,7 @@ const BroadcastPage = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Pickup</div>
-                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.pickupLocation}</div>
+                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.pickupLocationDescription || broadcast.pickupLocation}</div>
                                             </div>
                                         </div>
                                         <div className="flex items-start space-x-2">
@@ -952,7 +951,7 @@ const BroadcastPage = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Delivery</div>
-                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.deliveryLocation}</div>
+                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.deliveryLocationDescription || broadcast.deliveryLocation}</div>
                                             </div>
                                         </div>
                                     </div>

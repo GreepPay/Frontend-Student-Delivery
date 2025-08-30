@@ -94,8 +94,7 @@ const OTPForm = ({ email, userType, onBack }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     const otpString = otp.join('');
 
     if (otpString.length !== 6) {
@@ -155,7 +154,7 @@ const OTPForm = ({ email, userType, onBack }) => {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-4">
                 Enter the 6-digit code
@@ -200,7 +199,8 @@ const OTPForm = ({ email, userType, onBack }) => {
 
             <div className="space-y-3">
               <Button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 loading={isLoading}
                 loadingText="Verifying..."
                 disabled={otp.join('').length !== 6}
@@ -218,7 +218,7 @@ const OTPForm = ({ email, userType, onBack }) => {
                 Back to Login
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import apiService from '../services/api';
-import rateLimiter from '../utils/rateLimiter';
 import requestDeduplicator from '../utils/requestDeduplicator';
 import socketService from '../services/socketService';
 import { useAuth } from './AuthContext';
@@ -45,13 +44,7 @@ export const BroadcastProvider = ({ children }) => {
         const requestKey = `${endpoint}?lat=${location.lat}&lng=${location.lng}`;
 
         return requestDeduplicator.execute(requestKey, async () => {
-            // Check rate limiting
-            if (!rateLimiter.canMakeRequest(endpoint)) {
-                const waitTime = rateLimiter.getTimeUntilNextRequest(endpoint);
-                console.warn(`⚠️ BroadcastContext: Rate limited for ${endpoint}, waiting ${waitTime}ms`);
-                // Don't show toast for rate limiting to avoid spam
-                return; // Return gracefully instead of throwing error
-            }
+            // Rate limiting removed - all requests allowed
 
             setLoading(true);
             try {
@@ -70,14 +63,7 @@ export const BroadcastProvider = ({ children }) => {
             } catch (error) {
                 console.error('❌ BroadcastContext: Error fetching broadcasts from API:', error);
 
-                // Handle rate limiting specifically
-                if (error.response?.status === 429 || error.message.includes('Rate limited')) {
-                    console.warn('⚠️ BroadcastContext: Rate limited, will retry later');
-                    // Don't clear broadcasts on rate limit to maintain UI
-                } else {
-                    console.warn('⚠️ BroadcastContext: API fetch failed, keeping existing broadcasts from WebSocket');
-                    // Don't clear broadcasts on API failure, keep existing ones from WebSocket
-                }
+                console.warn('⚠️ BroadcastContext: API fetch failed, keeping existing broadcasts from WebSocket');
             } finally {
                 setLoading(false);
             }

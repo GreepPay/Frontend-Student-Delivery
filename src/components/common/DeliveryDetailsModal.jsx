@@ -123,7 +123,7 @@ const DeliveryDetailsModal = ({
                                         </a>
                                     )}
                                 </div>
-                                <p className="text-sm text-gray-900">{delivery.pickupLocation}</p>
+                                <p className="text-sm text-gray-900">{delivery.pickupLocationDescription || delivery.pickupLocation}</p>
                             </div>
 
                             {/* Delivery */}
@@ -144,7 +144,7 @@ const DeliveryDetailsModal = ({
                                         </a>
                                     )}
                                 </div>
-                                <p className="text-sm text-gray-900">{delivery.deliveryLocation}</p>
+                                <p className="text-sm text-gray-900">{delivery.deliveryLocationDescription || delivery.deliveryLocation}</p>
                             </div>
                         </div>
 

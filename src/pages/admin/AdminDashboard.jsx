@@ -11,7 +11,8 @@ import {
     ArrowPathIcon,
     ClipboardDocumentIcon,
     MegaphoneIcon,
-    MagnifyingGlassIcon
+    MagnifyingGlassIcon,
+    TrophyIcon
 } from '@heroicons/react/24/outline';
 import { getDashboardData } from '../../services/dashboardService';
 import apiService from '../../services/api';
@@ -368,12 +369,12 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-4">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
                 {/* Header */}
-                <div className="mb-4">
-                    <div className="flex items-center justify-between">
+                <div className="mb-3 sm:mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                         <div>
-                            <h1 className="text-lg sm:text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
                             <p className="mt-0.5 text-xs text-gray-600">
                                 Monitor and manage your delivery platform •
                                 <span className="font-medium text-green-600 ml-1">
@@ -406,13 +407,13 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
                     {stats.map((stat, index) => {
                         const Icon = stat.icon;
                         return (
-                            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className={`p-1.5 rounded-lg ${stat.bgColor}`}>
+                            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3 hover:shadow-md transition-shadow">
+                                <div className="flex items-center justify-between mb-1 sm:mb-2">
+                                    <div className={`p-1 sm:p-1.5 rounded-lg ${stat.bgColor}`}>
                                         <Icon className={`w-3 h-3 ${stat.color}`} />
                                     </div>
                                     <div className="text-right">
@@ -420,7 +421,7 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-gray-900">{stat.value}</p>
+                                    <p className="text-xs sm:text-sm font-bold text-gray-900">{stat.value}</p>
                                     <p className="text-xs text-gray-600 mt-0.5">{stat.title}</p>
                                 </div>
                             </div>
@@ -471,11 +472,11 @@ const AdminDashboard = () => {
                                                             <p className="text-xs text-gray-600 break-words leading-tight">
                                                                 <span className="font-medium">{delivery.customerName || 'Customer'}</span>
                                                             </p>
-                                                            <p className="text-xs text-gray-500 break-words leading-tight">
-                                                                📍 {delivery.pickupLocation || delivery.pickupAddress || delivery.pickup || 'Pickup location'}
+                                                            <p className="text-xs text-gray-500 break-words leading-tight truncate">
+                                                                📍 {delivery.pickupLocationDescription || delivery.pickupLocation || delivery.pickupAddress || delivery.pickup || 'Pickup location'}
                                                             </p>
-                                                            <p className="text-xs text-gray-500 break-words leading-tight">
-                                                                🎯 {delivery.deliveryLocation || delivery.deliveryAddress || delivery.delivery || 'Delivery location'}
+                                                            <p className="text-xs text-gray-500 break-words leading-tight truncate">
+                                                                🎯 {delivery.deliveryLocationDescription || delivery.deliveryLocation || delivery.deliveryAddress || delivery.delivery || 'Delivery location'}
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center space-x-2 mt-2 flex-wrap gap-1">
@@ -509,214 +510,170 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Real-time Driver Status */}
-                    <div className="xl:col-span-1 h-full">
-                        <RealTimeDriverStatus />
+                    {/* Right Column - Driver Status and Leaderboard */}
+                    <div className="space-y-4">
+                        {/* Real-time Driver Status */}
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <RealTimeDriverStatus />
+                        </div>
+
+                        {/* Leaderboard */}
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <div className="px-3 py-2 border-b border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xs font-semibold text-gray-900">Top Drivers</h2>
+                                    <div className="flex items-center space-x-1">
+                                        <button
+                                            onClick={copyLeaderboardToClipboard}
+                                            disabled={isCopying}
+                                            className="text-xs text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+                                        >
+                                            {isCopying ? 'Copying...' : 'Copy'}
+                                        </button>
+                                        <button
+                                            onClick={() => loadDashboardData(false)}
+                                            className="text-xs text-gray-500 hover:text-gray-700"
+                                        >
+                                            ↻
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-2">
+                                {topDrivers.length === 0 ? (
+                                    <div className="text-center py-3">
+                                        <TrophyIcon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                                        <p className="text-xs text-gray-500">No driver data available</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-1">
+                                        {topDrivers.slice(0, 5).map((driver, index) => {
+                                            const getRankBadge = (rank) => {
+                                                switch (rank) {
+                                                    case 0: return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: '🥇' };
+                                                    case 1: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: '🥈' };
+                                                    case 2: return { bg: 'bg-orange-100', text: 'text-orange-700', icon: '🥉' };
+                                                    default: return { bg: 'bg-blue-100', text: 'text-blue-700', icon: `#${rank + 1}` };
+                                                }
+                                            };
+
+                                            const rankBadge = getRankBadge(index);
+                                            const isOnline = driver.isOnline || driver.isActive;
+                                            const points = driver.points || 0;
+                                            const rating = driver.rating || 0;
+
+                                            return (
+                                                <div key={driver._id || driver.id || `driver-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                                    <div className="flex items-start space-x-2 min-w-0 flex-1">
+                                                        <div className={`w-6 h-6 ${rankBadge.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                                                            <span className="text-xs font-bold">{rankBadge.icon}</span>
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center space-x-2 mb-1">
+                                                                <p className="text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name || driver.fullNameComputed)}</p>
+                                                                <VerifiedBadge
+                                                                    isVerified={isDriverVerified(driver)}
+                                                                    size="xs"
+                                                                    className="flex-shrink-0"
+                                                                />
+                                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2 flex-wrap gap-1">
+                                                                <span className="text-xs text-gray-600">
+                                                                    📦 {driver.totalDeliveries || 0}
+                                                                </span>
+                                                                <span className="text-xs text-gray-600">
+                                                                    ⭐ {rating.toFixed(1)}
+                                                                </span>
+                                                                {driver.avgDeliveryTime && (
+                                                                    <span className="text-xs text-gray-600">
+                                                                        ⏱️ {Math.round(driver.avgDeliveryTime)}m
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-xs font-semibold text-green-600">
+                                                                    🏆 {points} pts
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right ml-2 flex-shrink-0">
+                                                        <p className="text-xs font-bold text-gray-900">{formatCurrency(driver.totalEarnings)}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {driver.avgEarningsPerDelivery ? `€${driver.avgEarningsPerDelivery}/delivery` : 'N/A'}
+                                                        </p>
+                                                        {driver.achievements && driver.achievements.length > 0 && (
+                                                            <div className="flex justify-end space-x-1 mt-1">
+                                                                {driver.achievements.slice(0, 2).map((achievement, idx) => (
+                                                                    <span key={idx} className="text-xs bg-green-100 text-green-700 px-1 rounded">
+                                                                        {achievement}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Bottom Row */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
-                    {/* Gamified Driver Leaderboard */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div className="px-3 py-2 border-b border-gray-200">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xs font-semibold text-gray-900">🏆 Driver Leaderboard</h2>
-                                <div className="flex items-center space-x-2">
-                                    {/* Manual refresh button */}
-                                    <button
-                                        onClick={() => loadDashboardData(true)}
-                                        disabled={isRefreshing}
-                                        className="flex items-center space-x-1 text-xs text-green-600 hover:text-green-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Refresh leaderboard data"
-                                    >
-                                        <ArrowPathIcon className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-                                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-                                    </button>
-                                    <button
-                                        onClick={copyLeaderboardToClipboard}
-                                        disabled={isCopying}
-                                        className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Copy leaderboard for sharing"
-                                    >
-                                        <ClipboardDocumentIcon className={`w-3 h-3 ${isCopying ? 'animate-pulse' : ''}`} />
-                                        <span>{isCopying ? 'Copying...' : 'Copy'}</span>
-                                    </button>
-                                    <button
-                                        onClick={() => navigate('/admin/drivers')}
-                                        className="text-xs text-green-600 hover:text-green-700 font-medium"
-                                    >
-                                        View all →
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-3">
-                            {/* Debug info */}
-                            <div className="text-xs text-gray-500 font-italic mb-2">
-                                Info: {topDrivers.length} drivers loaded | Period: {selectedPeriod} | Last updated: {new Date().toLocaleTimeString()}
-                            </div>
-
-                            {/* Summary Statistics */}
-                            {topDrivers.length > 0 && (
-                                <div className="grid grid-cols-2 gap-2 mb-3 p-2 bg-green-50 rounded border border-green-200">
-                                    <div className="text-center">
-                                        <p className="text-xs font-semibold text-green-800">{topDrivers.length}</p>
-                                        <p className="text-xs text-green-600">Total Drivers</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xs font-semibold text-green-800">
-                                            {calculateLeaderboardStats(topDrivers).totalDeliveries}
-                                        </p>
-                                        <p className="text-xs text-green-600">Total Deliveries</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xs font-semibold text-green-800">
-                                            {formatCurrency(calculateLeaderboardStats(topDrivers).totalEarnings)}
-                                        </p>
-                                        <p className="text-xs text-green-600">Total Earnings</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xs font-semibold text-green-800">
-                                            {calculateLeaderboardStats(topDrivers).averageRating.toFixed(1)}
-                                        </p>
-                                        <p className="text-xs text-green-600">Avg Rating</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {topDrivers.length === 0 ? (
-                                <div className="text-center py-4">
-                                    <UserGroupIcon className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                                    <p className="text-xs text-gray-500">No driver data available</p>
-                                    <p className="text-xs text-gray-400">Check console for API call details</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {topDrivers.slice(0, 5).map((driver, index) => {
-                                        const getRankBadge = (rank) => {
-                                            switch (rank) {
-                                                case 0: return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: '🥇' };
-                                                case 1: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: '🥈' };
-                                                case 2: return { bg: 'bg-orange-100', text: 'text-orange-700', icon: '🥉' };
-                                                default: return { bg: 'bg-blue-100', text: 'text-blue-700', icon: `#${rank + 1}` };
-                                            }
-                                        };
-
-                                        const rankBadge = getRankBadge(index);
-                                        const isOnline = driver.isOnline || driver.isActive;
-                                        const points = driver.points || 0;
-                                        const rating = driver.rating || 0;
-
-                                        return (
-                                            <div key={driver._id || driver.id || `driver-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                                <div className="flex items-start space-x-2 min-w-0 flex-1">
-                                                    <div className={`w-6 h-6 ${rankBadge.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
-                                                        <span className="text-xs font-bold">{rankBadge.icon}</span>
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center space-x-2 mb-1">
-                                                            <p className="text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name || driver.fullNameComputed)}</p>
-                                                            <VerifiedBadge
-                                                                isVerified={isDriverVerified(driver)}
-                                                                size="xs"
-                                                                className="flex-shrink-0"
-                                                            />
-                                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2 flex-wrap gap-1">
-                                                            <span className="text-xs text-gray-600">
-                                                                📦 {driver.totalDeliveries || 0}
-                                                            </span>
-                                                            <span className="text-xs text-gray-600">
-                                                                ⭐ {rating.toFixed(1)}
-                                                            </span>
-                                                            {driver.avgDeliveryTime && (
-                                                                <span className="text-xs text-gray-600">
-                                                                    ⏱️ {Math.round(driver.avgDeliveryTime)}m
-                                                                </span>
-                                                            )}
-                                                            <span className="text-xs font-semibold text-green-600">
-                                                                🏆 {points} pts
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right ml-2 flex-shrink-0">
-                                                    <p className="text-xs font-bold text-gray-900">{formatCurrency(driver.totalEarnings)}</p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {driver.avgEarningsPerDelivery ? `€${driver.avgEarningsPerDelivery}/delivery` : 'N/A'}
-                                                    </p>
-                                                    {driver.achievements && driver.achievements.length > 0 && (
-                                                        <div className="flex justify-end space-x-1 mt-1">
-                                                            {driver.achievements.slice(0, 2).map((achievement, idx) => (
-                                                                <span key={idx} className="text-xs bg-green-100 text-green-700 px-1 rounded">
-                                                                    {achievement}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Quick Actions */}
+                {/* Quick Actions Section */}
+                <div className="mt-4">
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                         <div className="px-3 py-2 border-b border-gray-200">
                             <h2 className="text-xs font-semibold text-gray-900">Quick Actions</h2>
                         </div>
                         <div className="p-3">
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
                                 <button
                                     onClick={() => navigate('/admin/drivers')}
-                                    className="p-2 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors text-left"
+                                    className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors text-left"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <UserGroupIcon className="w-3 h-3 text-blue-600" />
-                                        <div>
+                                        <UserGroupIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-xs font-medium text-blue-900">Manage Drivers</h3>
-                                            <p className="text-xs text-blue-700">View and manage driver accounts</p>
+                                            <p className="text-xs text-blue-700 hidden sm:block">View and manage driver accounts</p>
                                         </div>
                                     </div>
                                 </button>
                                 <button
                                     onClick={() => navigate('/admin/deliveries')}
-                                    className="p-2 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors text-left"
+                                    className="p-2 sm:p-3 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors text-left"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <TruckIcon className="w-3 h-3 text-green-600" />
-                                        <div>
+                                        <TruckIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-xs font-medium text-green-900">Track Deliveries</h3>
-                                            <p className="text-xs text-green-700">Monitor delivery status and progress</p>
+                                            <p className="text-xs text-green-700 hidden sm:block">Monitor delivery status and progress</p>
                                         </div>
                                     </div>
                                 </button>
                                 <button
                                     onClick={() => navigate('/admin/enhanced-analytics')}
-                                    className="p-2 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors text-left"
+                                    className="p-2 sm:p-3 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors text-left"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <ChartBarIcon className="w-3 h-3 text-purple-600" />
-                                        <div>
+                                        <ChartBarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-xs font-medium text-purple-900">View Analytics</h3>
-                                            <p className="text-xs text-purple-700">Detailed performance insights</p>
+                                            <p className="text-xs text-purple-700 hidden sm:block">Detailed performance insights</p>
                                         </div>
                                     </div>
                                 </button>
                                 <button
                                     onClick={() => navigate('/admin/broadcasts')}
-                                    className="p-2 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors text-left"
+                                    className="p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors text-left"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <MegaphoneIcon className="w-3 h-3 text-orange-600" />
-                                        <div>
+                                        <MegaphoneIcon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-xs font-medium text-orange-900">Broadcast Monitor</h3>
-                                            <p className="text-xs text-orange-700">Monitor delivery broadcasts</p>
+                                            <p className="text-xs text-orange-700 hidden sm:block">Monitor delivery broadcasts</p>
                                         </div>
                                     </div>
                                 </button>
@@ -731,21 +688,19 @@ const AdminDashboard = () => {
                                             console.error('🔍 AdminDashboard: Window is undefined');
                                         }
                                     }}
-                                    className="p-2 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 transition-colors text-left"
+                                    className="p-2 sm:p-3 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 transition-colors text-left"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <MagnifyingGlassIcon className="w-3 h-3 text-indigo-600" />
-                                        <div>
+                                        <MagnifyingGlassIcon className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-xs font-medium text-indigo-900">Global Search</h3>
-                                            <p className="text-xs text-indigo-700">Search across all entities</p>
+                                            <p className="text-xs text-indigo-700 hidden sm:block">Search across all entities</p>
                                         </div>
                                     </div>
                                 </button>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>
@@ -753,29 +708,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
-// The endpoint '/admin/search' does not exist. 
-// If you want to provide a quick action for global search, you should open the global search modal instead of navigating to a non-existent route.
-// Example: If you have a global search modal context or function, trigger it here.
-// For demonstration, we'll show a placeholder function call:
-
-// Example: If you use a context or prop for opening the global search modal, e.g. openGlobalSearchModal()
-// You may need to import/use the correct context or prop in your component.
-// Here's a placeholder for the button's onClick:
-
-/*
-<button
-    onClick={openGlobalSearchModal}
-    className="p-2 bg-gradient-to-r from-[#0D965E] to-[#00683F] border border-green-200 rounded hover:from-[#13b87a] hover:to-[#00794a] transition-colors text-left"
->
-    <div className="flex items-center space-x-2">
-        <MagnifyingGlassIcon className="w-3 h-3 text-white" />
-        <div>
-            <h3 className="text-xs font-medium text-white">Global Search</h3>
-            <p className="text-xs text-green-100">Search across all entities</p>
-        </div>
-    </div>
-</button>
-*/
-
-// If you do not have a modal yet, you may want to implement a global search modal and trigger it here.

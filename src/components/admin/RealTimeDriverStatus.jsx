@@ -196,10 +196,10 @@ const RealTimeDriverStatus = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
-      <div className="px-3 py-2 border-b border-gray-200">
+      <div className="px-3 sm:px-2 py-2 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-semibold text-gray-900">Driver Status</h2>
+            <h2 className="text-sm sm:text-xs font-semibold text-gray-900">Driver Status</h2>
             <p className="text-xs text-gray-600">
               Real-time driver availability
               {lastUpdate && (
@@ -214,24 +214,24 @@ const RealTimeDriverStatus = () => {
         </div>
       </div>
 
-      <div className="p-3 flex-1 flex flex-col">
+      <div className="p-3 sm:p-2 flex-1 flex flex-col">
         <div className="grid grid-cols-3 gap-2 mb-3">
           {statusCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={`status-${card.title}-${index}`} className="bg-gray-50 rounded p-2 text-center">
-                <div className={`p-1 rounded-lg ${card.bgColor} w-fit mx-auto mb-1`}>
-                  <Icon className={`w-3 h-3 ${card.color}`} />
+              <div key={`status-${card.title}-${index}`} className="bg-gray-50 rounded p-2 sm:p-1 text-center">
+                <div className={`p-1 sm:p-0.5 rounded-lg ${card.bgColor} w-fit mx-auto mb-1`}>
+                  <Icon className={`w-3 h-3 sm:w-2.5 sm:h-2.5 ${card.color}`} />
                 </div>
-                <p className="text-sm font-bold text-gray-900">{card.count}</p>
-                <p className="text-xs text-gray-600">{card.title}</p>
+                <p className="text-sm sm:text-xs font-bold text-gray-900">{card.count}</p>
+                <p className="text-xs sm:text-xs text-gray-600">{card.title}</p>
               </div>
             );
           })}
         </div>
 
         <div className="space-y-2 flex-1">
-          <h3 className="text-xs font-medium text-gray-700">Recent Activity</h3>
+          <h3 className="text-sm sm:text-xs font-medium text-gray-700">Recent Activity</h3>
           <div className="space-y-1 flex-1 overflow-y-auto">
             {driverStatus.drivers.slice(0, 4).map((driver, index) => {
               // Handle both 'isActive' and 'isOnline' field names
@@ -240,11 +240,11 @@ const RealTimeDriverStatus = () => {
               const status = isOnline ? 'online' : 'offline';
 
               return (
-                <div key={driver._id || driver.id || `driver-status-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded">
+                <div key={driver._id || driver.id || `driver-status-${index}`} className="flex items-start justify-between p-2 sm:p-1.5 bg-gray-50 rounded">
                   <div className="flex items-start space-x-2 min-w-0 flex-1">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusColor(status).split(' ')[0]}`}></div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name)}</p>
+                      <p className="text-sm sm:text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name)}</p>
                       <p className="text-xs text-gray-500 truncate">{driver.currentLocation || driver.area || 'Unknown'}</p>
                     </div>
                   </div>

@@ -46,6 +46,24 @@ const FormMemoryPanel = ({
         }
     };
 
+    const handleAddTestData = () => {
+        const testData = {
+            customerName: 'Test Customer',
+            customerPhone: '123-456-7890',
+            pickupLocationDescription: 'Test Pickup Description',
+            deliveryLocationDescription: 'Test Delivery Description',
+            fee: 150,
+            paymentMethod: 'cash'
+        };
+
+        console.log('🧪 Adding test data:', testData);
+        formMemory.saveFormData(formType, testData);
+        loadRecentEntries();
+        if (showStats) {
+            loadStats();
+        }
+    };
+
     const formatLastUsed = (date) => {
         const now = new Date();
         const diff = now - date;
@@ -60,7 +78,7 @@ const FormMemoryPanel = ({
     };
 
     const getKeyFields = (entry) => {
-        const keyFields = ['customerName', 'customerPhone', 'pickupLocation', 'deliveryLocation'];
+        const keyFields = ['customerName', 'customerPhone', 'pickupLocationDescription', 'deliveryLocationDescription'];
         return keyFields.filter(field => entry[field]).slice(0, 2);
     };
 
@@ -69,13 +87,22 @@ const FormMemoryPanel = ({
             <div className={`bg-gray-50 rounded-lg p-4 ${className}`}>
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium text-gray-900">Form Memory</h3>
-                    <button
-                        onClick={loadRecentEntries}
-                        className="text-gray-400 hover:text-gray-600"
-                        title="Refresh"
-                    >
-                        <ArrowPathIcon className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={handleAddTestData}
+                            className="text-blue-400 hover:text-blue-600 text-xs px-2 py-1 border border-blue-300 rounded"
+                            title="Add test data"
+                        >
+                            Test
+                        </button>
+                        <button
+                            onClick={loadRecentEntries}
+                            className="text-gray-400 hover:text-gray-600"
+                            title="Refresh"
+                        >
+                            <ArrowPathIcon className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
                 <p className="text-xs text-gray-500">No recent entries. Start creating deliveries to build memory.</p>
             </div>
@@ -147,7 +174,9 @@ const FormMemoryPanel = ({
                                         {keyFields.map(field => (
                                             <div key={field} className="flex items-center space-x-2">
                                                 <span className="font-medium capitalize">
-                                                    {field.replace(/([A-Z])/g, ' $1').trim()}:
+                                                    {field === 'pickupLocationDescription' ? 'Pickup' :
+                                                        field === 'deliveryLocationDescription' ? 'Delivery' :
+                                                            field.replace(/([A-Z])/g, ' $1').trim()}:
                                                 </span>
                                                 <span className="truncate">{entry[field]}</span>
                                             </div>

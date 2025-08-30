@@ -5,7 +5,7 @@ import {
     PlusIcon, MagnifyingGlassIcon, FunnelIcon, ArrowPathIcon,
     EyeIcon, PencilIcon, TrashIcon, XMarkIcon, TruckIcon,
     CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, PhoneIcon,
-    UserIcon
+    UserIcon, MegaphoneIcon, UserPlusIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '../../components/common/ToastProvider';
 import apiService from '../../services/api';
@@ -505,6 +505,150 @@ const DeliveriesPage = () => {
             setDeleting(false);
             setShowDeleteModal(false);
             setDeliveryToDelete(null);
+        }
+    };
+
+    // Rebroadcast delivery to available drivers
+    const handleRebroadcastDelivery = async (delivery) => {
+        try {
+            console.log('📢 Rebroadcasting delivery:', delivery._id);
+
+            const token = localStorage.getItem('token');
+
+            // Try the dedicated rebroadcast endpoint first
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/deliveries/${delivery._id}/rebroadcast`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        broadcastRadius: delivery.broadcastRadius || 5,
+                        broadcastDuration: delivery.broadcastDuration || 60
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showSuccess(`Delivery ${delivery.deliveryCode} rebroadcasted successfully!`);
+                    fetchDeliveries(); // Refresh the list
+                    return;
+                }
+            } catch (rebroadcastError) {
+                console.log('Rebroadcast endpoint not available, trying alternative method...');
+            }
+
+            // Fallback: Update delivery to trigger rebroadcast
+            const updatePayload = {
+                ...delivery,
+                status: 'pending', // Reset to pending to allow rebroadcast
+                assignedTo: null, // Clear assignment
+                broadcastStatus: 'broadcasting' // Set broadcast status
+            };
+
+            const response = await fetch(`${API_BASE_URL}/admin/deliveries/${delivery._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatePayload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showSuccess(`Delivery ${delivery.deliveryCode} reset for rebroadcast!`);
+                fetchDeliveries(); // Refresh the list
+            } else {
+                showError(result.error || 'Failed to rebroadcast delivery');
+            }
+        } catch (error) {
+            console.error('Error rebroadcasting delivery:', error);
+            showError('Error rebroadcasting delivery');
+        }
+    };
+
+    // Manual assignment modal state
+    const [showManualAssignmentModal, setShowManualAssignmentModal] = useState(false);
+    const [deliveryToAssign, setDeliveryToAssign] = useState(null);
+    const [selectedDriverId, setSelectedDriverId] = useState('');
+
+    // Open manual assignment modal
+    const handleManualAssignment = (delivery) => {
+        setDeliveryToAssign(delivery);
+        setSelectedDriverId('');
+        setShowManualAssignmentModal(true);
+    };
+
+    // Confirm manual assignment
+    const confirmManualAssignment = async () => {
+        if (!deliveryToAssign || !selectedDriverId) {
+            showError('Please select a driver');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const selectedDriver = drivers.find(d => d._id === selectedDriverId);
+
+            // Try the dedicated assign endpoint first
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/deliveries/${deliveryToAssign._id}/assign`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        driverId: selectedDriverId
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showSuccess(`Delivery ${deliveryToAssign.deliveryCode} assigned to ${selectedDriver?.fullNameComputed || selectedDriver?.name || 'driver'}!`);
+                    fetchDeliveries(); // Refresh the list
+                    setShowManualAssignmentModal(false);
+                    setDeliveryToAssign(null);
+                    setSelectedDriverId('');
+                    return;
+                }
+            } catch (assignError) {
+                console.log('Assign endpoint not available, trying update method...');
+            }
+
+            // Fallback: Use the update delivery endpoint
+            const updatePayload = {
+                ...deliveryToAssign,
+                assignedTo: selectedDriverId,
+                status: 'assigned' // Update status to assigned
+            };
+
+            const response = await fetch(`${API_BASE_URL}/admin/deliveries/${deliveryToAssign._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatePayload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showSuccess(`Delivery ${deliveryToAssign.deliveryCode} assigned to ${selectedDriver?.fullNameComputed || selectedDriver?.name || 'driver'}!`);
+                fetchDeliveries(); // Refresh the list
+                setShowManualAssignmentModal(false);
+                setDeliveryToAssign(null);
+                setSelectedDriverId('');
+            } else {
+                showError(result.error || 'Failed to assign delivery');
+            }
+        } catch (error) {
+            console.error('Error assigning delivery:', error);
+            showError('Error assigning delivery');
         }
     };
 
@@ -1094,9 +1238,9 @@ Student Delivery Team`;
                                                     </td>
                                                     <td className="px-3 py-2">
                                                         <div className="text-sm text-gray-900 truncate max-w-xs">
-                                                            {delivery.pickupLocation}
+                                                            {delivery.pickupLocationDescription || delivery.pickupLocation}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">→ {delivery.deliveryLocation}</div>
+                                                        <div className="text-xs text-gray-500">→ {delivery.deliveryLocationDescription || delivery.deliveryLocation}</div>
                                                     </td>
                                                     <td className="px-3 py-2">
                                                         <div className="flex items-center space-x-1">
@@ -1136,6 +1280,24 @@ Student Delivery Team`;
                                                             >
                                                                 <PencilIcon className="w-3 h-3" />
                                                             </button>
+                                                            {!delivery.assignedTo && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleRebroadcastDelivery(delivery)}
+                                                                        className="text-purple-600 hover:text-purple-900 p-1"
+                                                                        title="Rebroadcast to Drivers"
+                                                                    >
+                                                                        <MegaphoneIcon className="w-3 h-3" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleManualAssignment(delivery)}
+                                                                        className="text-orange-600 hover:text-orange-900 p-1"
+                                                                        title="Assign Manually"
+                                                                    >
+                                                                        <UserPlusIcon className="w-3 h-3" />
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                             <button
                                                                 onClick={() => handleDeleteDelivery(delivery._id)}
                                                                 className="text-red-600 hover:text-red-900 p-1"
@@ -1220,6 +1382,24 @@ Student Delivery Team`;
                                                 >
                                                     <PencilIcon className="w-4 h-4" />
                                                 </button>
+                                                {!delivery.assignedTo && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleRebroadcastDelivery(delivery)}
+                                                            className="text-purple-600 hover:text-purple-900 p-1"
+                                                            title="Rebroadcast to Drivers"
+                                                        >
+                                                            <MegaphoneIcon className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleManualAssignment(delivery)}
+                                                            className="text-orange-600 hover:text-orange-900 p-1"
+                                                            title="Assign Manually"
+                                                        >
+                                                            <UserPlusIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                                 <button
                                                     onClick={() => handleDeleteDelivery(delivery._id)}
                                                     className="text-red-600 hover:text-red-900 p-1"
@@ -1238,8 +1418,8 @@ Student Delivery Team`;
 
                                         {/* Route Information */}
                                         <div className="mb-2">
-                                            <div className="text-sm text-gray-900 truncate">{delivery.pickupLocation}</div>
-                                            <div className="text-xs text-gray-500">→ {delivery.deliveryLocation}</div>
+                                            <div className="text-sm text-gray-900 truncate">{delivery.pickupLocationDescription || delivery.pickupLocation}</div>
+                                            <div className="text-xs text-gray-500">→ {delivery.deliveryLocationDescription || delivery.deliveryLocation}</div>
                                         </div>
 
                                         {/* Status and Payment Grid */}
@@ -1733,7 +1913,7 @@ Student Delivery Team`;
                                             </a>
                                         )}
                                     </div>
-                                    <p className="text-sm text-gray-900">{selectedDelivery.pickupLocation}</p>
+                                    <p className="text-sm text-gray-900">{selectedDelivery.pickupLocationDescription || selectedDelivery.pickupLocation}</p>
                                 </div>
 
                                 {/* Delivery */}
@@ -1754,18 +1934,29 @@ Student Delivery Team`;
                                             </a>
                                         )}
                                     </div>
-                                    <p className="text-sm text-gray-900">{selectedDelivery.deliveryLocation}</p>
+                                    <p className="text-sm text-gray-900">{selectedDelivery.deliveryLocationDescription || selectedDelivery.deliveryLocation}</p>
                                 </div>
                             </div>
 
                             {/* Assignment */}
                             <div className="bg-gray-50 rounded-lg p-4">
-                                <h4 className="text-sm font-medium text-gray-900 mb-3">Assignment</h4>
+                                <h4 className="text-sm font-medium text-gray-900 mb-3">Assignment & Status</h4>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-600">Assigned To:</span>
                                         <span className="text-sm font-medium text-gray-900">
                                             {selectedDelivery.assignedTo ? 'Assigned' : 'Unassigned'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-600">Pickup Status:</span>
+                                        <span className={`text-sm font-medium ${selectedDelivery.status === 'picked_up' || selectedDelivery.status === 'in_transit' || selectedDelivery.status === 'delivered'
+                                            ? 'text-green-600'
+                                            : 'text-yellow-600'
+                                            }`}>
+                                            {selectedDelivery.status === 'picked_up' || selectedDelivery.status === 'in_transit' || selectedDelivery.status === 'delivered'
+                                                ? '✅ Picked Up'
+                                                : '⏳ Not Picked Up'}
                                         </span>
                                     </div>
                                     {selectedDelivery.estimatedTime && (
@@ -1825,6 +2016,28 @@ Student Delivery Team`;
                                 >
                                     Edit Delivery
                                 </button>
+                                {!selectedDelivery.assignedTo && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                closeViewPanel();
+                                                handleRebroadcastDelivery(selectedDelivery);
+                                            }}
+                                            className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                                        >
+                                            Rebroadcast
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                closeViewPanel();
+                                                handleManualAssignment(selectedDelivery);
+                                            }}
+                                            className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+                                        >
+                                            Assign
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     onClick={() => {
                                         closeViewPanel();
@@ -1855,6 +2068,74 @@ Student Delivery Team`;
                 type="danger"
                 isLoading={deleting}
             />
+
+            {/* Manual Assignment Modal */}
+            {showManualAssignmentModal && deliveryToAssign && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Assign Delivery Manually</h3>
+                                <button
+                                    onClick={() => setShowManualAssignmentModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <XMarkIcon className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-600 mb-2">
+                                    Assign delivery <span className="font-medium">{deliveryToAssign.deliveryCode}</span> to a driver:
+                                </p>
+                                <div className="text-sm text-gray-500">
+                                    <p><strong>Customer:</strong> {deliveryToAssign.customerName}</p>
+                                    <p><strong>Pickup:</strong> {deliveryToAssign.pickupLocationDescription || deliveryToAssign.pickupLocation}</p>
+                                    <p><strong>Delivery:</strong> {deliveryToAssign.deliveryLocationDescription || deliveryToAssign.deliveryLocation}</p>
+                                    <p><strong>Fee:</strong> ₺{deliveryToAssign.fee}</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Driver
+                                </label>
+                                <select
+                                    value={selectedDriverId}
+                                    onChange={(e) => setSelectedDriverId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="">Choose a driver...</option>
+                                    {drivers
+                                        .filter(driver => driver.status === 'active' || driver.status === 'online')
+                                        .map(driver => (
+                                            <option key={driver._id} value={driver._id}>
+                                                {driver.fullNameComputed || driver.name} - {driver.phone}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={() => setShowManualAssignmentModal(false)}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmManualAssignment}
+                                    disabled={!selectedDriverId}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Assign Delivery
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

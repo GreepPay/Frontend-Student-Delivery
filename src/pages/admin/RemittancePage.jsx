@@ -448,7 +448,7 @@ const RemittancePage = () => {
 
     return (
         <>
-            <div className="h-screen bg-gray-50 flex flex-col">
+            <div className="min-h-screen bg-gray-50 flex flex-col">
                 {/* Toast Notification */}
                 {toastNotification.show && (
                     <div className={`fixed top-4 right-4 z-50 p-3 rounded-lg shadow-lg text-xs ${toastNotification.type === 'success'
@@ -470,14 +470,14 @@ const RemittancePage = () => {
                     </div>
                 )}
 
-                {/* Header - Compact */}
-                <div className="bg-white border-b border-gray-200 px-4 py-3">
-                    <div className="flex items-center justify-between">
+                {/* Header - Responsive */}
+                <div className="bg-white border-b border-gray-200 px-4 py-4 sm:py-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                         <div>
-                            <h1 className="text-lg font-bold text-gray-900">Remittance Management</h1>
-                            <p className="text-xs text-gray-600">Automatically calculate remittances from completed deliveries</p>
+                            <h1 className="text-xl sm:text-lg font-bold text-gray-900">Remittance Management</h1>
+                            <p className="text-sm sm:text-xs text-gray-600">Automatically calculate remittances from completed deliveries</p>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={async () => {
                                     setRefreshing(true);
@@ -491,21 +491,21 @@ const RemittancePage = () => {
                                     }
                                 }}
                                 disabled={refreshing}
-                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center px-3 py-2 sm:py-1.5 border border-gray-300 text-sm sm:text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ArrowPathIcon className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+                                <ArrowPathIcon className={`h-4 w-4 sm:h-3 sm:w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
                                 {refreshing ? 'Refreshing...' : 'Refresh'}
                             </button>
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                className="inline-flex items-center px-3 py-2 sm:py-1.5 border border-transparent text-sm sm:text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500"
                             >
-                                <PlusIcon className="h-3 w-3 mr-1" />
+                                <PlusIcon className="h-4 w-4 sm:h-3 sm:w-3 mr-1" />
                                 Calculate
                             </button>
                             <button
                                 onClick={() => setShowBulkGenerateModal(true)}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="inline-flex items-center px-3 py-2 sm:py-1.5 border border-transparent text-sm sm:text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             >
                                 📊 Bulk
                             </button>
@@ -513,38 +513,38 @@ const RemittancePage = () => {
                     </div>
                 </div>
 
-                {/* Summary Stats Bar */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200 px-4 py-2">
-                    <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center space-x-6">
+                {/* Summary Stats Bar - Responsive */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200 px-4 py-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                             <div className="flex items-center space-x-2">
-                                <span className="text-gray-600">Total Amount:</span>
-                                <span className="font-semibold text-gray-900">₺{(stats.totalAmount || 0).toLocaleString()}</span>
+                                <span className="text-sm sm:text-xs text-gray-600">Total Amount:</span>
+                                <span className="font-semibold text-sm sm:text-xs text-gray-900">₺{(stats.totalAmount || 0).toLocaleString()}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <span className="text-gray-600">Completed:</span>
-                                <span className="font-semibold text-green-700">{stats.completed || 0}</span>
+                                <span className="text-sm sm:text-xs text-gray-600">Completed:</span>
+                                <span className="font-semibold text-sm sm:text-xs text-green-700">{stats.completed || 0}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <span className="text-gray-600">Pending:</span>
-                                <span className="font-semibold text-yellow-700">{stats.pending || 0}</span>
+                                <span className="text-sm sm:text-xs text-gray-600">Pending:</span>
+                                <span className="font-semibold text-sm sm:text-xs text-yellow-700">{stats.pending || 0}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <span className="text-gray-600">Cancelled:</span>
-                                <span className="font-semibold text-red-700">{stats.cancelled || 0}</span>
+                                <span className="text-sm sm:text-xs text-gray-600">Cancelled:</span>
+                                <span className="font-semibold text-sm sm:text-xs text-red-700">{stats.cancelled || 0}</span>
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <span className="text-gray-600">Completion Rate:</span>
-                            <span className="font-semibold text-blue-700">{(stats.completionRate || 0).toFixed(1)}%</span>
+                            <span className="text-sm sm:text-xs text-gray-600">Completion Rate:</span>
+                            <span className="font-semibold text-sm sm:text-xs text-blue-700">{(stats.completionRate || 0).toFixed(1)}%</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Main Content - Single VH Layout */}
-                <div className="flex-1 flex overflow-hidden">
-                    {/* Left Panel - Stats and Driver Details */}
-                    <div className="w-1/3 flex flex-col border-r border-gray-200">
+                {/* Main Content - Responsive Layout */}
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    {/* Left Panel - Stats and Driver Details - Hidden on mobile, shown on desktop */}
+                    <div className="hidden lg:flex lg:w-1/3 flex-col border-r border-gray-200">
                         {/* Stats Cards - Compact */}
                         <div className="bg-white p-3 border-b border-gray-200">
                             <div className="grid grid-cols-3 gap-2">
@@ -730,24 +730,26 @@ const RemittancePage = () => {
                         </div>
                     </div>
 
-                    {/* Right Panel - Filters and Table */}
-                    <div className="w-2/3 flex flex-col">
-                        {/* Filters - Compact */}
-                        <div className="bg-white p-3 border-b border-gray-200">
-                            <div className="flex items-center space-x-2 flex-wrap gap-2">
-                                <FunnelIcon className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs font-medium text-gray-700">Filters:</span>
+                    {/* Right Panel - Filters and Table/Cards - Full width on mobile */}
+                    <div className="flex-1 lg:w-2/3 flex flex-col">
+                        {/* Filters - Responsive */}
+                        <div className="bg-white p-4 sm:p-3 border-b border-gray-200">
+                            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-2 sm:flex-wrap sm:gap-2">
+                                <div className="flex items-center space-x-2">
+                                    <FunnelIcon className="h-4 w-4 sm:h-3 sm:w-3 text-gray-400" />
+                                    <span className="text-sm sm:text-xs font-medium text-gray-700">Filters:</span>
+                                </div>
                                 <select
                                     value={filters.status}
                                     onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                    className="px-3 py-2 sm:px-2 sm:py-1 border border-gray-300 rounded text-sm sm:text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
                                 >
                                     <option value="">All Status</option>
                                     <option value="pending">Pending</option>
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
-                                <div className="w-32">
+                                <div className="w-full sm:w-32">
                                     <SearchableDropdown
                                         options={[
                                             { value: '', label: 'All Drivers' },
@@ -761,151 +763,265 @@ const RemittancePage = () => {
                                         onChange={(driverId) => setFilters({ ...filters, driverId })}
                                         placeholder="All Drivers"
                                         searchPlaceholder="Search drivers..."
-                                        className="text-xs"
+                                        className="text-sm sm:text-xs"
                                         showSearch={drivers.length > 5}
                                         maxHeight="max-h-40"
                                         renderOption={(option, isSelected) => (
                                             option.value === '' ? (
-                                                <span className="text-gray-700 text-xs">{option.label}</span>
+                                                <span className="text-gray-700 text-sm sm:text-xs">{option.label}</span>
                                             ) : (
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium text-xs">{option.label}</span>
-                                                    <span className="text-xs text-gray-500">{option.email}</span>
+                                                    <span className="font-medium text-sm sm:text-xs">{option.label}</span>
+                                                    <span className="text-sm sm:text-xs text-gray-500">{option.email}</span>
                                                 </div>
                                             )
                                         )}
                                     />
                                 </div>
-                                <input
-                                    type="date"
-                                    value={filters.startDate}
-                                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                                />
-                                <input
-                                    type="date"
-                                    value={filters.endDate}
-                                    onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                                />
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="date"
+                                        value={filters.startDate}
+                                        onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                                        className="px-3 py-2 sm:px-2 sm:py-1 border border-gray-300 rounded text-sm sm:text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={filters.endDate}
+                                        onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                                        className="px-3 py-2 sm:px-2 sm:py-1 border border-gray-300 rounded text-sm sm:text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Remittances Table - Compact */}
+                        {/* Remittances Content - Responsive */}
                         <div className="flex-1 bg-white overflow-hidden">
                             <div className="h-full flex flex-col">
                                 <div className="flex-1 overflow-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50 sticky top-0">
-                                            <tr>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                                                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {(Array.isArray(remittances) ? remittances : []).length > 0 ? (
-                                                (Array.isArray(remittances) ? remittances : []).map((remittance) => (
-                                                    <tr key={remittance._id} className="hover:bg-gray-50">
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <div className="text-xs font-medium text-gray-900">
-                                                                {remittance.referenceNumber || 'N/A'}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {remittance.description || 'No description'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <div className="text-xs font-medium text-gray-900">
-                                                                {capitalizeName(remittance.driverName || remittance.driverId?.fullName || remittance.driver?.name || 'Unknown Driver')}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {remittance.driverEmail || remittance.driverId?.email || remittance.driver?.email || 'No email'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <div className="text-xs font-medium text-gray-900">
-                                                                ₺{(remittance.amount || 0).toLocaleString()}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {remittance.deliveryIds?.length || 0} deliveries
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <div className="text-xs font-medium text-gray-900 capitalize">
-                                                                {remittance.paymentMethod || 'N/A'}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {remittance.handledByName || 'Not handled'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(remittance.status)}`}>
-                                                                {getStatusIcon(remittance.status)}
-                                                                <span className="ml-1 capitalize">{remittance.status}</span>
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap">
-                                                            <div className="text-xs text-gray-900 max-w-xs truncate" title={remittance.notes || remittance.adminNotes || 'No notes'}>
-                                                                {remittance.notes || remittance.adminNotes || 'No notes'}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                                                            {formatDate(remittance.createdAt)}
-                                                        </td>
-                                                        <td className="px-3 py-2 whitespace-nowrap text-right text-xs font-medium">
-                                                            <div className="flex items-center justify-end space-x-1">
-                                                                {remittance.status === 'pending' && (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setSelectedRemittance(remittance);
-                                                                                setShowCompleteModal(true);
-                                                                            }}
-                                                                            className="text-green-600 hover:text-green-900 p-1"
-                                                                            title="Complete"
-                                                                        >
-                                                                            <CheckCircleIcon className="w-3 h-3" />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setSelectedRemittance(remittance);
-                                                                                setShowCancelModal(true);
-                                                                            }}
-                                                                            className="text-red-600 hover:text-red-900 p-1"
-                                                                            title="Cancel"
-                                                                        >
-                                                                            <XCircleIcon className="w-3 h-3" />
-                                                                        </button>
-                                                                    </>
-                                                                )}
+                                    {/* Desktop Table View */}
+                                    <div className="hidden lg:block">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50 sticky top-0">
+                                                <tr>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                                                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {(Array.isArray(remittances) ? remittances : []).length > 0 ? (
+                                                    (Array.isArray(remittances) ? remittances : []).map((remittance) => (
+                                                        <tr key={remittance._id} className="hover:bg-gray-50">
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <div className="text-xs font-medium text-gray-900">
+                                                                    {remittance.referenceNumber || 'N/A'}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {remittance.description || 'No description'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <div className="text-xs font-medium text-gray-900">
+                                                                    {capitalizeName(remittance.driverName || remittance.driverId?.fullName || remittance.driver?.name || 'Unknown Driver')}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {remittance.driverEmail || remittance.driverId?.email || remittance.driver?.email || 'No email'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <div className="text-xs font-medium text-gray-900">
+                                                                    ₺{(remittance.amount || 0).toLocaleString()}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {remittance.deliveryIds?.length || 0} deliveries
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <div className="text-xs font-medium text-gray-900 capitalize">
+                                                                    {remittance.paymentMethod || 'N/A'}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {remittance.handledByName || 'Not handled'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(remittance.status)}`}>
+                                                                    {getStatusIcon(remittance.status)}
+                                                                    <span className="ml-1 capitalize">{remittance.status}</span>
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                                <div className="text-xs text-gray-900 max-w-xs truncate" title={remittance.notes || remittance.adminNotes || 'No notes'}>
+                                                                    {remittance.notes || remittance.adminNotes || 'No notes'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
+                                                                {formatDate(remittance.createdAt)}
+                                                            </td>
+                                                            <td className="px-3 py-2 whitespace-nowrap text-right text-xs font-medium">
+                                                                <div className="flex items-center justify-end space-x-1">
+                                                                    {remittance.status === 'pending' && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setSelectedRemittance(remittance);
+                                                                                    setShowCompleteModal(true);
+                                                                                }}
+                                                                                className="text-green-600 hover:text-green-900 p-1"
+                                                                                title="Complete"
+                                                                            >
+                                                                                <CheckCircleIcon className="w-3 h-3" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setSelectedRemittance(remittance);
+                                                                                    setShowCancelModal(true);
+                                                                                }}
+                                                                                className="text-red-600 hover:text-red-900 p-1"
+                                                                                title="Cancel"
+                                                                            >
+                                                                                <XCircleIcon className="w-3 h-3" />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="8" className="px-3 py-8 text-center text-gray-500">
+                                                            <div className="flex flex-col items-center">
+                                                                <CurrencyDollarIcon className="h-8 w-8 text-gray-400 mb-2" />
+                                                                <p className="text-sm font-medium">No remittances found</p>
+                                                                <p className="text-xs text-gray-400">Create a new remittance to get started</p>
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="6" className="px-3 py-8 text-center text-gray-500">
-                                                        <div className="flex flex-col items-center">
-                                                            <CurrencyDollarIcon className="h-8 w-8 text-gray-400 mb-2" />
-                                                            <p className="text-sm font-medium">No remittances found</p>
-                                                            <p className="text-xs text-gray-400">Create a new remittance to get started</p>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Mobile Card View */}
+                                    <div className="lg:hidden">
+                                        {(Array.isArray(remittances) ? remittances : []).length > 0 ? (
+                                            <div className="space-y-3 p-4">
+                                                {(Array.isArray(remittances) ? remittances : []).map((remittance) => (
+                                                    <div key={remittance._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div className="flex-1">
+                                                                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                                                                    {remittance.referenceNumber || 'N/A'}
+                                                                </h3>
+                                                                <p className="text-xs text-gray-600 mb-2">
+                                                                    {remittance.description || 'No description'}
+                                                                </p>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(remittance.status)}`}>
+                                                                        {getStatusIcon(remittance.status)}
+                                                                        <span className="ml-1 capitalize">{remittance.status}</span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-lg font-bold text-gray-900">
+                                                                    ₺{(remittance.amount || 0).toLocaleString()}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {remittance.deliveryIds?.length || 0} deliveries
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
+
+                                                        <div className="space-y-2 text-sm">
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-600">Driver:</span>
+                                                                <span className="font-medium text-gray-900">
+                                                                    {capitalizeName(remittance.driverName || remittance.driverId?.fullName || remittance.driver?.name || 'Unknown Driver')}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-600">Email:</span>
+                                                                <span className="text-gray-900">
+                                                                    {remittance.driverEmail || remittance.driverId?.email || remittance.driver?.email || 'No email'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-600">Payment Method:</span>
+                                                                <span className="text-gray-900 capitalize">
+                                                                    {remittance.paymentMethod || 'N/A'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-600">Handled By:</span>
+                                                                <span className="text-gray-900">
+                                                                    {remittance.handledByName || 'Not handled'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-600">Created:</span>
+                                                                <span className="text-gray-900">
+                                                                    {formatDate(remittance.createdAt)}
+                                                                </span>
+                                                            </div>
+                                                            {remittance.notes || remittance.adminNotes ? (
+                                                                <div className="pt-2 border-t border-gray-100">
+                                                                    <span className="text-gray-600">Notes:</span>
+                                                                    <p className="text-gray-900 mt-1">
+                                                                        {remittance.notes || remittance.adminNotes}
+                                                                    </p>
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
+
+                                                        {/* Mobile Actions */}
+                                                        {remittance.status === 'pending' && (
+                                                            <div className="flex space-x-2 mt-4 pt-3 border-t border-gray-100">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedRemittance(remittance);
+                                                                        setShowCompleteModal(true);
+                                                                    }}
+                                                                    className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                >
+                                                                    <CheckCircleIcon className="w-4 h-4 mr-1" />
+                                                                    Complete
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedRemittance(remittance);
+                                                                        setShowCancelModal(true);
+                                                                    }}
+                                                                    className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                >
+                                                                    <XCircleIcon className="w-4 h-4 mr-1" />
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-12 px-4">
+                                                <CurrencyDollarIcon className="h-12 w-12 text-gray-400 mb-4" />
+                                                <p className="text-lg font-medium text-gray-900 mb-2">No remittances found</p>
+                                                <p className="text-sm text-gray-500 text-center">Create a new remittance to get started</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Pagination - Compact */}
+                                {/* Pagination - Responsive */}
                                 {Array.isArray(remittances) && remittances.length > 0 && (
-                                    <div className="px-3 py-2 border-t border-gray-200">
+                                    <div className="px-4 sm:px-3 py-3 sm:py-2 border-t border-gray-200">
                                         <Pagination
                                             currentPage={currentPage}
                                             totalPages={totalPages}

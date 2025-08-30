@@ -165,7 +165,7 @@ const OTPVerification = () => {
                     break;
                 case 429:
                     errorMessage = data?.message || 'Too many verification attempts. Please wait a moment before trying again.';
-                    errorType = 'rateLimit';
+                    errorType = 'error';
                     break;
                 case 500:
                     errorMessage = data?.message || 'Server error. Please try again later.';
@@ -265,7 +265,7 @@ const OTPVerification = () => {
                     duration: 5000,
                 });
                 break;
-            case 'rateLimit':
+            case 'error':
                 toast.error(errorMessage, {
                     duration: 6000,
                 });
@@ -289,8 +289,7 @@ const OTPVerification = () => {
         return { message: errorMessage, type: errorType };
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setErrors({});
 
         // Client-side validation
@@ -376,8 +375,8 @@ const OTPVerification = () => {
             const errorInfo = handleError(error, 'resend');
 
             // Handle specific resend errors
-            if (errorInfo.type === 'rateLimit') {
-                setTimeLeft(120); // Extend cooldown for rate limiting
+            if (errorInfo.type === 'error') {
+                setTimeLeft(60); // Standard cooldown
             } else if (errorInfo.type === 'notFound') {
                 // Redirect to login if user not found
                 navigate('/');
@@ -406,7 +405,7 @@ const OTPVerification = () => {
 
                 {/* Form */}
                 <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-6">
 
                         {/* OTP Input */}
                         <div>
@@ -465,7 +464,8 @@ const OTPVerification = () => {
 
                         {/* Submit Button */}
                         <Button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             loading={isSubmitting}
                             loadingText="Verifying..."
                             disabled={otp.length !== 6}
@@ -485,7 +485,7 @@ const OTPVerification = () => {
                             Back to Login
                         </button>
 
-                    </form>
+                    </div>
                 </div>
 
                 {/* Footer */}

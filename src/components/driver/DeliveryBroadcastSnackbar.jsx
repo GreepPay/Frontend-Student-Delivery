@@ -202,7 +202,7 @@ const DeliveryBroadcastSnackbar = ({ delivery, onAccept, onClose, onExpire }) =>
                             </div>
                             <div className="flex-1">
                                 <div className="text-sm font-semibold text-gray-900 mb-1">Pickup Location</div>
-                                <div className="text-sm text-gray-600 leading-relaxed">{delivery.pickupLocation}</div>
+                                <div className="text-sm text-gray-600 leading-relaxed">{delivery.pickupLocationDescription || delivery.pickupLocation}</div>
                             </div>
                         </div>
                         <div className="flex items-start space-x-3">
@@ -211,7 +211,7 @@ const DeliveryBroadcastSnackbar = ({ delivery, onAccept, onClose, onExpire }) =>
                             </div>
                             <div className="flex-1">
                                 <div className="text-sm font-semibold text-gray-900 mb-1">Delivery Location</div>
-                                <div className="text-sm text-gray-600 leading-relaxed">{delivery.deliveryLocation}</div>
+                                <div className="text-sm text-gray-600 leading-relaxed">{delivery.deliveryLocationDescription || delivery.deliveryLocation}</div>
                             </div>
                         </div>
                     </div>

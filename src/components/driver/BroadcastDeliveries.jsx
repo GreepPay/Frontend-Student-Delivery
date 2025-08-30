@@ -75,17 +75,10 @@ const BroadcastDeliveries = () => {
         } catch (error) {
             console.error('❌ BroadcastDeliveries: Error loading broadcasts:', error);
 
-            // Handle rate limiting specifically
-            if (error.response?.status === 429) {
-                console.warn('⚠️ BroadcastDeliveries: Rate limited, will retry later');
-                // Don't show error to user for rate limiting, just log it
-                // Don't clear broadcasts on rate limit to maintain UI
-            } else {
-                if (!silent) {
-                    toast.error('Failed to load available deliveries');
-                }
-                setBroadcasts([]);
+            if (!silent) {
+                toast.error('Failed to load available deliveries');
             }
+            setBroadcasts([]);
         } finally {
             if (!silent) {
                 setLoading(false);
@@ -157,7 +150,7 @@ const BroadcastDeliveries = () => {
         }
     };
 
-    // Auto-refresh broadcasts every 60 seconds (increased to avoid rate limiting)
+    // Auto-refresh broadcasts every 60 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             if (userLocation && !loading) {
@@ -279,7 +272,7 @@ const BroadcastDeliveries = () => {
                                             <MapPinIcon className="w-4 h-4 text-green-500 mr-2" />
                                             <span className="text-xs font-medium text-gray-500">PICKUP</span>
                                         </div>
-                                        <p className="text-sm text-gray-900">{broadcast.pickupLocation}</p>
+                                        <p className="text-sm text-gray-900">{broadcast.pickupLocationDescription || broadcast.pickupLocation}</p>
                                     </div>
                                     <div className="flex justify-center">
                                         <div className="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center">
@@ -291,7 +284,7 @@ const BroadcastDeliveries = () => {
                                             <MapPinIcon className="w-4 h-4 text-red-500 mr-2" />
                                             <span className="text-xs font-medium text-gray-500">DELIVERY</span>
                                         </div>
-                                        <p className="text-sm text-gray-900">{broadcast.deliveryLocation}</p>
+                                        <p className="text-sm text-gray-900">{broadcast.deliveryLocationDescription || broadcast.deliveryLocation}</p>
                                     </div>
                                 </div>
 
