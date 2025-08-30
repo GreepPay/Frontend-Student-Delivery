@@ -5,11 +5,10 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <!-- CSP temporarily disabled for testing -->
-    <!-- <meta
+    <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://localhost:3001; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3001;"
-    /> -->
+      content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://localhost:3001; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3001; object-src 'none';"
+    />
     <meta
       name="description"
       content="Student Delivery System - Modern OTP-based delivery management"
@@ -32,6 +31,41 @@
         }
         originalWarn.apply(console, args);
       };
+
+      // Block MetaMask connections
+      if (typeof window !== "undefined") {
+        // Override ethereum object to prevent MetaMask connections
+        Object.defineProperty(window, "ethereum", {
+          get: function () {
+            console.warn("MetaMask connection blocked");
+            return undefined;
+          },
+          set: function () {
+            console.warn("MetaMask connection blocked");
+          },
+        });
+
+        // Block MetaMask extension messages
+        const originalPostMessage = window.postMessage;
+        window.postMessage = function (message, targetOrigin, transfer) {
+          if (
+            message &&
+            typeof message === "object" &&
+            message.type &&
+            (message.type.includes("metamask") ||
+              message.type.includes("ethereum"))
+          ) {
+            console.warn("MetaMask message blocked:", message.type);
+            return;
+          }
+          return originalPostMessage.call(
+            this,
+            message,
+            targetOrigin,
+            transfer
+          );
+        };
+      }
     </script>
   </head>
   <body>
