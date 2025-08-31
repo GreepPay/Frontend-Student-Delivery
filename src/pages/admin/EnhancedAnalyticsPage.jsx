@@ -193,7 +193,7 @@ const EnhancedAnalyticsPage = () => {
             }
 
             // Call the backend PDF export API
-            const response = await fetch(`http://localhost:3001/api/admin/analytics/export?period=${selectedPeriod}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/analytics/export?period=${selectedPeriod}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

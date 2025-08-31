@@ -416,7 +416,7 @@ const BroadcastPage = () => {
                         <div>🔐 Socket Authenticated: {socketService.isAuthenticated().toString()}</div>
                         <div>👤 User: {capitalizeName(user?.name) || user?.email || 'Unknown'}</div>
                         <div>🆔 User ID: {user?._id || user?.id || 'None'}</div>
-                        <div>🔌 Socket URL: {process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001'}</div>
+                        <div>🔌 Socket URL: {process.env.REACT_APP_SOCKET_URL}</div>
                         <div>🔄 Real-time Updates: Enabled (WebSocket)</div>
                     </div>
                     <div className="mt-3 space-x-2">
@@ -475,7 +475,7 @@ const BroadcastPage = () => {
                                 console.log('🧪 Manual API fetch triggered');
                                 try {
                                     // Direct API call to see what's returned
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/delivery/broadcast/active?lat=${userLocation?.lat}&lng=${userLocation?.lng}`, {
+                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/delivery/broadcast/active?lat=${userLocation?.lat}&lng=${userLocation?.lng}`, {
                                         headers: {
                                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
                                             'Content-Type': 'application/json'
@@ -528,7 +528,7 @@ const BroadcastPage = () => {
                                         deliveryLocationLink: 'https://www.google.com/maps/place/Kucuk/@35.1833,33.3667,15z/'
                                     };
 
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/deliveries`, {
+                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/deliveries`, {
                                         method: 'POST',
                                         headers: {
                                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -674,7 +674,7 @@ const BroadcastPage = () => {
                             onClick={async () => {
                                 console.log('🔍 Checking backend socket status');
                                 try {
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/socket/status`, {
+                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/socket/status`, {
                                         headers: {
                                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
                                             'Content-Type': 'application/json'
@@ -731,7 +731,7 @@ const BroadcastPage = () => {
                                 console.log('🧪 Triggering broadcast processing');
                                 try {
                                     // Trigger the background job that processes broadcasts
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/background-jobs/trigger-broadcast-processing`, {
+                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/background-jobs/trigger-broadcast-processing`, {
                                         method: 'POST',
                                         headers: {
                                             'Authorization': `Bearer ${localStorage.getItem('token')}`,

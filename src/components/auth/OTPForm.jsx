@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import Button from '../common/Button';
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const OTPForm = ({ email, userType, onBack }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);

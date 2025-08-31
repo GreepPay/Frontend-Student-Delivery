@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const pendingRequests = new Map();
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 console.log('🔧 API Configuration - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 console.log('🔧 API Configuration - Final API_BASE_URL:', API_BASE_URL);
 
@@ -75,7 +75,7 @@ api.interceptors.response.use(
         // Handle connection refused errors
         if (error.code === 'ERR_NETWORK' || error.message.includes('ERR_CONNECTION_REFUSED')) {
             console.error('🌐 Backend server is not running or not accessible');
-            console.error('🌐 Please ensure the backend server is running on localhost:3001');
+            console.error('🌐 Please ensure the backend server is running on the configured API_URL');
             console.error('🌐 Error details:', error.message);
 
             // Show toast for network errors

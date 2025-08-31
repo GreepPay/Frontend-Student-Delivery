@@ -31,7 +31,7 @@ export const formatCurrency = (amount, currency = 'TRY') => {
 export const formatCurrencyWithSettings = async (amount) => {
   try {
     // Try to get currency from system settings
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/system-settings/public`);
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/system-settings/public`);
     const data = await response.json();
     const currency = data.success ? data.data.display?.currency : 'TRY';
 

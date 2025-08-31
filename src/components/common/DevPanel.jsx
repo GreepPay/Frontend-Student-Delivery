@@ -128,7 +128,7 @@ const DevPanel = ({ isOpen, onClose }) => {
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600">API URL:</span>
                                 <span className="text-sm font-medium text-gray-900 truncate ml-2">
-                                    {process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}
+                                    {process.env.REACT_APP_API_URL}
                                 </span>
                             </div>
                         </div>

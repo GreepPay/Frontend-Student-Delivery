@@ -4,7 +4,7 @@ class SystemSettingsService {
     // Get public settings (no authentication required)
     async getPublicSettings() {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/system-settings/public`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/system-settings/public`);
             const data = await response.json();
 
             if (!data.success) {

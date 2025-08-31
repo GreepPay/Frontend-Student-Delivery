@@ -156,7 +156,7 @@ const EarningsValidationTest = () => {
                         <div>
                             <h3 className="font-medium text-gray-900 mb-2">Environment</h3>
                             <ul className="space-y-1 text-gray-600">
-                                <li>• API URL: {process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}</li>
+                                <li>• API URL: {process.env.REACT_APP_API_URL}</li>
                                 <li>• Token: {localStorage.getItem('token') ? 'Available' : 'Not available'}</li>
                                 <li>• Service: EarningsValidationService</li>
                             </ul>

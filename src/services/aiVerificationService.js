@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // AI Document Verification Service
 // This service handles automatic verification of uploaded documents using AI capabilities

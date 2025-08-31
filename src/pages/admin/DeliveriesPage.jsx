@@ -88,7 +88,7 @@ const DeliveriesPage = () => {
     const [showMemoryPanel, setShowMemoryPanel] = useState(false);
     const [autoFillMode, setAutoFillMode] = useState(false);
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+    const API_BASE_URL = process.env.REACT_APP_API_URL;
 
     // Keyboard shortcut to close view panel
     const closeViewPanel = useCallback(() => {

@@ -14,7 +14,7 @@ const ConnectionStatus = () => {
                 const socketConnected = socketService.isConnected();
 
                 // Also check API health endpoint
-                const apiResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/health`, {
+                const apiResponse = await fetch(`${process.env.REACT_APP_API_URL}/health`, {
                     method: 'GET',
                     timeout: 3000
                 });
@@ -90,7 +90,7 @@ const ConnectionStatus = () => {
                         <div>
                             <h3 className="font-semibold mb-1">Connection Lost</h3>
                             <p className="text-sm opacity-90">
-                                The backend server is not running. Please ensure the server is started on localhost:3001
+                                The backend server is not running. Please ensure the server is started on the configured API_URL
                             </p>
                         </div>
                     </div>

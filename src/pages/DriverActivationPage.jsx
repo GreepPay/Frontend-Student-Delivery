@@ -5,7 +5,7 @@ import DriverActivationSkeleton from '../components/common/DriverActivationSkele
 import toast from 'react-hot-toast';
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const DriverActivationPage = () => {
     const { token } = useParams();

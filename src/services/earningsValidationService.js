@@ -6,7 +6,7 @@ class EarningsValidationService {
         try {
             console.log('🔍 EarningsValidationService: Validating driver earnings for:', driverId);
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/earnings/validate/${driverId}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/earnings/validate/${driverId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -38,7 +38,7 @@ class EarningsValidationService {
         try {
             console.log('🔧 EarningsValidationService: Fixing driver earnings for:', driverId);
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/earnings/fix/${driverId}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/earnings/fix/${driverId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -70,7 +70,7 @@ class EarningsValidationService {
         try {
             console.log('🔍 EarningsValidationService: Validating all drivers earnings');
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/earnings/validate-all`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/earnings/validate-all`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ class EarningsValidationService {
 
             // This would typically be called from the backend when a delivery is marked as delivered
             // For frontend, we can validate that the delivery has earnings
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/deliveries/${deliveryId}/earnings-check`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/deliveries/${deliveryId}/earnings-check`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ class EarningsValidationService {
         try {
             console.log('💰 EarningsValidationService: Updating driver total earnings for:', driverId);
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/drivers/${driverId}/earnings/recalculate`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/drivers/${driverId}/earnings/recalculate`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -162,7 +162,7 @@ class EarningsValidationService {
         try {
             console.log('📊 EarningsValidationService: Getting earnings validation status');
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/earnings/status`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/earnings/status`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'

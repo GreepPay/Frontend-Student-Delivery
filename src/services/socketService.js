@@ -13,7 +13,7 @@ class SocketService {
     connect(userId, userType) {
         try {
             // Connect to Socket.IO server
-            this.socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001', {
+            this.socket = io(process.env.REACT_APP_SOCKET_URL, {
                 auth: {
                     userId,
                     userType
@@ -69,7 +69,7 @@ class SocketService {
 
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
                 console.error('🔌 Max reconnection attempts reached. Backend server may not be running.');
-                console.error('🔌 Please ensure the backend server is running on localhost:3001');
+                console.error('🔌 Please ensure the backend server is running on the configured SOCKET_URL');
                 // Stop trying to reconnect to avoid spam
                 this.socket.disconnect();
             }
