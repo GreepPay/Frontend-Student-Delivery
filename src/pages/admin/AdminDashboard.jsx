@@ -24,6 +24,7 @@ import { isDriverVerified } from '../../utils/verificationHelpers';
 import VerifiedBadge from '../../components/common/VerifiedBadge';
 import { useSystemSettings } from '../../context/SystemSettingsContext';
 import RealTimeDriverStatus from '../../components/admin/RealTimeDriverStatus';
+import ReferralCodeTester from '../../components/admin/ReferralCodeTester';
 
 import { DashboardSkeleton } from '../../components/common/SkeletonLoader';
 
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState('today');
     const [isCopying, setIsCopying] = useState(false);
+    const [showReferralTester, setShowReferralTester] = useState(false);
 
     // Copy leaderboard functionality
     const copyLeaderboardToClipboard = async () => {
@@ -361,349 +363,391 @@ const AdminDashboard = () => {
     // };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Subtle refresh indicator */}
-            {isRefreshing && (
-                <div className="fixed top-0 left-0 right-0 z-50">
-                    <div className="h-0.5 bg-gradient-to-r from-green-400 to-green-600 animate-pulse"></div>
-                </div>
-            )}
+        <>
+            <div className="min-h-screen bg-gray-50">
+                {/* Subtle refresh indicator */}
+                {isRefreshing && (
+                    <div className="fixed top-0 left-0 right-0 z-50">
+                        <div className="h-0.5 bg-gradient-to-r from-green-400 to-green-600 animate-pulse"></div>
+                    </div>
+                )}
 
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
-                {/* Header */}
-                <div className="mb-3 sm:mb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                        <div>
-                            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                            <p className="mt-0.5 text-xs text-gray-600">
-                                Monitor and manage your delivery platform •
-                                <span className="font-medium text-green-600 ml-1">
-                                    {selectedPeriod === 'today' ? 'Today' :
-                                        selectedPeriod === 'thisWeek' ? 'This Week' :
-                                            selectedPeriod === 'thisMonth' ? 'This Month' :
-                                                selectedPeriod === 'allTime' ? 'All Time' : 'Today'}
-                                </span>
-                            </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <select
-                                value={selectedPeriod}
-                                onChange={(e) => {
-                                    const newPeriod = e.target.value;
-                                    console.log('📊 AdminDashboard: Period changed from', selectedPeriod, 'to', newPeriod, 'at', new Date().toISOString());
-                                    setSelectedPeriod(newPeriod);
-                                    // The useEffect with selectedPeriod dependency will automatically trigger loadDashboardData()
-                                }}
-                                className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                            >
-                                <option value="today">Today</option>
-                                <option value="thisWeek">This Week</option>
-                                <option value="thisMonth">This Month</option>
-                                <option value="allTime">All Time</option>
-                            </select>
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
+                    {/* Header */}
+                    <div className="mb-3 sm:mb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                            <div>
+                                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                                <p className="mt-0.5 text-xs text-gray-600">
+                                    Monitor and manage your delivery platform •
+                                    <span className="font-medium text-green-600 ml-1">
+                                        {selectedPeriod === 'today' ? 'Today' :
+                                            selectedPeriod === 'thisWeek' ? 'This Week' :
+                                                selectedPeriod === 'thisMonth' ? 'This Month' :
+                                                    selectedPeriod === 'allTime' ? 'All Time' : 'Today'}
+                                    </span>
+                                </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <select
+                                    value={selectedPeriod}
+                                    onChange={(e) => {
+                                        const newPeriod = e.target.value;
+                                        console.log('📊 AdminDashboard: Period changed from', selectedPeriod, 'to', newPeriod, 'at', new Date().toISOString());
+                                        setSelectedPeriod(newPeriod);
+                                        // The useEffect with selectedPeriod dependency will automatically trigger loadDashboardData()
+                                    }}
+                                    className="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                >
+                                    <option value="today">Today</option>
+                                    <option value="thisWeek">This Week</option>
+                                    <option value="thisMonth">This Month</option>
+                                    <option value="allTime">All Time</option>
+                                </select>
 
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    {stats.map((stat, index) => {
-                        const Icon = stat.icon;
-                        return (
-                            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between mb-1 sm:mb-2">
-                                    <div className={`p-1 sm:p-1.5 rounded-lg ${stat.bgColor}`}>
-                                        <Icon className={`w-3 h-3 ${stat.color}`} />
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-gray-500">{stat.change}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-xs sm:text-sm font-bold text-gray-900">{stat.value}</p>
-                                    <p className="text-xs text-gray-600 mt-0.5">{stat.title}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-stretch">
-                    {/* Enhanced Recent Deliveries */}
-                    <div className="xl:col-span-2">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
-                            <div className="px-3 py-2 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-xs font-semibold text-gray-900">Live Delivery Activity</h2>
-                                    <button
-                                        onClick={() => navigate('/admin/deliveries')}
-                                        className="text-xs text-green-600 hover:text-green-700 font-medium"
-                                    >
-                                        View all →
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="p-2 flex-1 flex flex-col">
-                                {recentDeliveries.length === 0 ? (
-                                    <div className="text-center py-3 flex-1 flex items-center justify-center">
-                                        <div>
-                                            <TruckIcon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                                            <p className="text-xs text-gray-500">No recent deliveries</p>
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        {stats.map((stat, index) => {
+                            const Icon = stat.icon;
+                            return (
+                                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3 hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-1 sm:mb-2">
+                                        <div className={`p-1 sm:p-1.5 rounded-lg ${stat.bgColor}`}>
+                                            <Icon className={`w-3 h-3 ${stat.color}`} />
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-gray-500">{stat.change}</p>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="space-y-1 flex-1 overflow-y-auto">
-                                        {recentDeliveries.slice(0, 6).map((delivery, index) => (
-                                            <div key={delivery._id || delivery.id || `delivery-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                                <div className="flex items-start space-x-2 min-w-0 flex-1">
-                                                    <div className={`p-1 rounded-full flex-shrink-0 ${getStatusColor(delivery.status)}`}>
-                                                        {getStatusIcon(delivery.status)}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center space-x-2 mb-1">
-                                                            <p className="text-xs font-medium text-gray-900 truncate">#{delivery.deliveryCode || delivery.id}</p>
-                                                            {delivery.priority === 'high' && (
-                                                                <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded-full flex-shrink-0">Priority</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-xs text-gray-600 break-words leading-tight">
-                                                                <span className="font-medium">{delivery.customerName || 'Customer'}</span>
-                                                            </p>
-                                                            <p className="text-xs text-gray-500 break-words leading-tight truncate">
-                                                                📍 {delivery.pickupLocationDescription || delivery.pickupLocation || delivery.pickupAddress || delivery.pickup || 'Pickup location'}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500 break-words leading-tight truncate">
-                                                                🎯 {delivery.deliveryLocationDescription || delivery.deliveryLocation || delivery.deliveryAddress || delivery.delivery || 'Delivery location'}
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2 mt-2 flex-wrap gap-1">
-                                                            <span className="text-xs text-gray-500">
-                                                                {delivery.assignedTo ? `👤 ${delivery.assignedTo.name || delivery.assignedTo.fullNameComputed}` : '🚫 Unassigned'}
-                                                            </span>
-                                                            {delivery.estimatedTime && (
-                                                                <span className="text-xs text-gray-500">
-                                                                    ⏱️ {delivery.estimatedTime}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right ml-2 flex-shrink-0">
-                                                    <p className="text-xs font-bold text-gray-900">{formatCurrency(delivery.fee || delivery.amount)}</p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {delivery.paymentMethod === 'cash' ? '💵 Cash' : '💳 Card'}
-                                                    </p>
-                                                    {delivery.createdAt && (
-                                                        <p className="text-xs text-gray-400">
-                                                            {new Date(delivery.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-bold text-gray-900">{stat.value}</p>
+                                        <p className="text-xs text-gray-600 mt-0.5">{stat.title}</p>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    {/* Right Column - Driver Status and Leaderboard */}
-                    <div className="space-y-4">
-                        {/* Real-time Driver Status */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                            <RealTimeDriverStatus />
-                        </div>
-
-                        {/* Leaderboard */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                            <div className="px-3 py-2 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-xs font-semibold text-gray-900">Top Drivers</h2>
-                                    <div className="flex items-center space-x-1">
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-stretch">
+                        {/* Enhanced Recent Deliveries */}
+                        <div className="xl:col-span-2">
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
+                                <div className="px-3 py-2 border-b border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xs font-semibold text-gray-900">Live Delivery Activity</h2>
                                         <button
-                                            onClick={copyLeaderboardToClipboard}
-                                            disabled={isCopying}
-                                            className="text-xs text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+                                            onClick={() => navigate('/admin/deliveries')}
+                                            className="text-xs text-green-600 hover:text-green-700 font-medium"
                                         >
-                                            {isCopying ? 'Copying...' : 'Copy'}
-                                        </button>
-                                        <button
-                                            onClick={() => loadDashboardData(false)}
-                                            className="text-xs text-gray-500 hover:text-gray-700"
-                                        >
-                                            ↻
+                                            View all →
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-2">
-                                {topDrivers.length === 0 ? (
-                                    <div className="text-center py-3">
-                                        <TrophyIcon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                                        <p className="text-xs text-gray-500">No driver data available</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {topDrivers.slice(0, 5).map((driver, index) => {
-                                            const getRankBadge = (rank) => {
-                                                switch (rank) {
-                                                    case 0: return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: '🥇' };
-                                                    case 1: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: '🥈' };
-                                                    case 2: return { bg: 'bg-orange-100', text: 'text-orange-700', icon: '🥉' };
-                                                    default: return { bg: 'bg-blue-100', text: 'text-blue-700', icon: `#${rank + 1}` };
-                                                }
-                                            };
-
-                                            const rankBadge = getRankBadge(index);
-                                            const isOnline = driver.isOnline || driver.isActive;
-                                            const points = driver.points || 0;
-                                            const rating = driver.rating || 0;
-
-                                            return (
-                                                <div key={driver._id || driver.id || `driver-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                <div className="p-2 flex-1 flex flex-col">
+                                    {recentDeliveries.length === 0 ? (
+                                        <div className="text-center py-3 flex-1 flex items-center justify-center">
+                                            <div>
+                                                <TruckIcon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                                                <p className="text-xs text-gray-500">No recent deliveries</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1 flex-1 overflow-y-auto">
+                                            {recentDeliveries.slice(0, 6).map((delivery, index) => (
+                                                <div key={delivery._id || delivery.id || `delivery-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
                                                     <div className="flex items-start space-x-2 min-w-0 flex-1">
-                                                        <div className={`w-6 h-6 ${rankBadge.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
-                                                            <span className="text-xs font-bold">{rankBadge.icon}</span>
+                                                        <div className={`p-1 rounded-full flex-shrink-0 ${getStatusColor(delivery.status)}`}>
+                                                            {getStatusIcon(delivery.status)}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
                                                             <div className="flex items-center space-x-2 mb-1">
-                                                                <p className="text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name || driver.fullNameComputed)}</p>
-                                                                <VerifiedBadge
-                                                                    isVerified={isDriverVerified(driver)}
-                                                                    size="xs"
-                                                                    className="flex-shrink-0"
-                                                                />
-                                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                                                <p className="text-xs font-medium text-gray-900 truncate">#{delivery.deliveryCode || delivery.id}</p>
+                                                                {delivery.priority === 'high' && (
+                                                                    <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded-full flex-shrink-0">Priority</span>
+                                                                )}
                                                             </div>
-                                                            <div className="flex items-center space-x-2 flex-wrap gap-1">
-                                                                <span className="text-xs text-gray-600">
-                                                                    📦 {driver.totalDeliveries || 0}
+                                                            <div className="space-y-1">
+                                                                <p className="text-xs text-gray-600 break-words leading-tight">
+                                                                    <span className="font-medium">{delivery.customerName || 'Customer'}</span>
+                                                                </p>
+                                                                <p className="text-xs text-gray-500 break-words leading-tight truncate">
+                                                                    📍 {delivery.pickupLocationDescription || delivery.pickupLocation || delivery.pickupAddress || delivery.pickup || 'Pickup location'}
+                                                                </p>
+                                                                <p className="text-xs text-gray-500 break-words leading-tight truncate">
+                                                                    🎯 {delivery.deliveryLocationDescription || delivery.deliveryLocation || delivery.deliveryAddress || delivery.delivery || 'Delivery location'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2 mt-2 flex-wrap gap-1">
+                                                                <span className="text-xs text-gray-500">
+                                                                    {delivery.assignedTo ? `👤 ${delivery.assignedTo.name || delivery.assignedTo.fullNameComputed}` : '🚫 Unassigned'}
                                                                 </span>
-                                                                <span className="text-xs text-gray-600">
-                                                                    ⭐ {rating.toFixed(1)}
-                                                                </span>
-                                                                {driver.avgDeliveryTime && (
-                                                                    <span className="text-xs text-gray-600">
-                                                                        ⏱️ {Math.round(driver.avgDeliveryTime)}m
+                                                                {delivery.estimatedTime && (
+                                                                    <span className="text-xs text-gray-500">
+                                                                        ⏱️ {delivery.estimatedTime}
                                                                     </span>
                                                                 )}
-                                                                <span className="text-xs font-semibold text-green-600">
-                                                                    🏆 {points} pts
-                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right ml-2 flex-shrink-0">
-                                                        <p className="text-xs font-bold text-gray-900">{formatCurrency(driver.totalEarnings)}</p>
+                                                        <p className="text-xs font-bold text-gray-900">{formatCurrency(delivery.fee || delivery.amount)}</p>
                                                         <p className="text-xs text-gray-500">
-                                                            {driver.avgEarningsPerDelivery ? `€${driver.avgEarningsPerDelivery}/delivery` : 'N/A'}
+                                                            {delivery.paymentMethod === 'cash' ? '💵 Cash' : '💳 Card'}
                                                         </p>
-                                                        {driver.achievements && driver.achievements.length > 0 && (
-                                                            <div className="flex justify-end space-x-1 mt-1">
-                                                                {driver.achievements.slice(0, 2).map((achievement, idx) => (
-                                                                    <span key={idx} className="text-xs bg-green-100 text-green-700 px-1 rounded">
-                                                                        {achievement}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
+                                                        {delivery.createdAt && (
+                                                            <p className="text-xs text-gray-400">
+                                                                {new Date(delivery.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Driver Status and Leaderboard */}
+                        <div className="space-y-4">
+                            {/* Real-time Driver Status */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                                <RealTimeDriverStatus />
+                            </div>
+
+                            {/* Leaderboard */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                                <div className="px-3 py-2 border-b border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xs font-semibold text-gray-900">Top Drivers</h2>
+                                        <div className="flex items-center space-x-1">
+                                            <button
+                                                onClick={copyLeaderboardToClipboard}
+                                                disabled={isCopying}
+                                                className="text-xs text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+                                            >
+                                                {isCopying ? 'Copying...' : 'Copy'}
+                                            </button>
+                                            <button
+                                                onClick={() => loadDashboardData(false)}
+                                                className="text-xs text-gray-500 hover:text-gray-700"
+                                            >
+                                                ↻
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
+                                </div>
+                                <div className="p-2">
+                                    {topDrivers.length === 0 ? (
+                                        <div className="text-center py-3">
+                                            <TrophyIcon className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                                            <p className="text-xs text-gray-500">No driver data available</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {topDrivers.slice(0, 5).map((driver, index) => {
+                                                const getRankBadge = (rank) => {
+                                                    switch (rank) {
+                                                        case 0: return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: '🥇' };
+                                                        case 1: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: '🥈' };
+                                                        case 2: return { bg: 'bg-orange-100', text: 'text-orange-700', icon: '🥉' };
+                                                        default: return { bg: 'bg-blue-100', text: 'text-blue-700', icon: `#${rank + 1}` };
+                                                    }
+                                                };
+
+                                                const rankBadge = getRankBadge(index);
+                                                const isOnline = driver.isOnline || driver.isActive;
+                                                const points = driver.points || 0;
+                                                const rating = driver.rating || 0;
+
+                                                return (
+                                                    <div key={driver._id || driver.id || `driver-${index}`} className="flex items-start justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                                        <div className="flex items-start space-x-2 min-w-0 flex-1">
+                                                            <div className={`w-6 h-6 ${rankBadge.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                                                                <span className="text-xs font-bold">{rankBadge.icon}</span>
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center space-x-2 mb-1">
+                                                                    <p className="text-xs font-medium text-gray-900 truncate">{capitalizeName(driver.name || driver.fullNameComputed)}</p>
+                                                                    <VerifiedBadge
+                                                                        isVerified={isDriverVerified(driver)}
+                                                                        size="xs"
+                                                                        className="flex-shrink-0"
+                                                                    />
+                                                                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2 flex-wrap gap-1">
+                                                                    <span className="text-xs text-gray-600">
+                                                                        📦 {driver.totalDeliveries || 0}
+                                                                    </span>
+                                                                    <span className="text-xs text-gray-600">
+                                                                        ⭐ {rating.toFixed(1)}
+                                                                    </span>
+                                                                    {driver.avgDeliveryTime && (
+                                                                        <span className="text-xs text-gray-600">
+                                                                            ⏱️ {Math.round(driver.avgDeliveryTime)}m
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs font-semibold text-green-600">
+                                                                        🏆 {points} pts
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right ml-2 flex-shrink-0">
+                                                            <p className="text-xs font-bold text-gray-900">{formatCurrency(driver.totalEarnings)}</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {driver.avgEarningsPerDelivery ? `€${driver.avgEarningsPerDelivery}/delivery` : 'N/A'}
+                                                            </p>
+                                                            {driver.achievements && driver.achievements.length > 0 && (
+                                                                <div className="flex justify-end space-x-1 mt-1">
+                                                                    {driver.achievements.slice(0, 2).map((achievement, idx) => (
+                                                                        <span key={idx} className="text-xs bg-green-100 text-green-700 px-1 rounded">
+                                                                            {achievement}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Quick Actions Section */}
-                <div className="mt-4">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div className="px-3 py-2 border-b border-gray-200">
-                            <h2 className="text-xs font-semibold text-gray-900">Quick Actions</h2>
-                        </div>
-                        <div className="p-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
-                                <button
-                                    onClick={() => navigate('/admin/drivers')}
-                                    className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors text-left"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <UserGroupIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-xs font-medium text-blue-900">Manage Drivers</h3>
-                                            <p className="text-xs text-blue-700 hidden sm:block">View and manage driver accounts</p>
+                    {/* Quick Actions Section */}
+                    <div className="mt-4">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <div className="px-3 py-2 border-b border-gray-200">
+                                <h2 className="text-xs font-semibold text-gray-900">Quick Actions</h2>
+                            </div>
+                            <div className="p-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
+                                    <button
+                                        onClick={() => navigate('/admin/drivers')}
+                                        className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <UserGroupIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-blue-900">Manage Drivers</h3>
+                                                <p className="text-xs text-blue-700 hidden sm:block">View and manage driver accounts</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => navigate('/admin/deliveries')}
-                                    className="p-2 sm:p-3 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors text-left"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <TruckIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-xs font-medium text-green-900">Track Deliveries</h3>
-                                            <p className="text-xs text-green-700 hidden sm:block">Monitor delivery status and progress</p>
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/admin/deliveries')}
+                                        className="p-2 sm:p-3 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <TruckIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-green-900">Track Deliveries</h3>
+                                                <p className="text-xs text-green-700 hidden sm:block">Monitor delivery status and progress</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => navigate('/admin/enhanced-analytics')}
-                                    className="p-2 sm:p-3 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors text-left"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <ChartBarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-xs font-medium text-purple-900">View Analytics</h3>
-                                            <p className="text-xs text-purple-700 hidden sm:block">Detailed performance insights</p>
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/admin/enhanced-analytics')}
+                                        className="p-2 sm:p-3 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <ChartBarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-purple-900">View Analytics</h3>
+                                                <p className="text-xs text-purple-700 hidden sm:block">Detailed performance insights</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => navigate('/admin/broadcasts')}
-                                    className="p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors text-left"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <MegaphoneIcon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-xs font-medium text-orange-900">Broadcast Monitor</h3>
-                                            <p className="text-xs text-orange-700 hidden sm:block">Monitor delivery broadcasts</p>
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/admin/broadcasts')}
+                                        className="p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <MegaphoneIcon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-orange-900">Broadcast Monitor</h3>
+                                                <p className="text-xs text-orange-700 hidden sm:block">Monitor delivery broadcasts</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        console.log('🔍 AdminDashboard: Dispatching open-global-search event');
-                                        if (typeof window !== 'undefined') {
-                                            const event = new CustomEvent('open-global-search');
-                                            window.dispatchEvent(event);
-                                            console.log('🔍 AdminDashboard: Event dispatched successfully');
-                                        } else {
-                                            console.error('🔍 AdminDashboard: Window is undefined');
-                                        }
-                                    }}
-                                    className="p-2 sm:p-3 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 transition-colors text-left"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <MagnifyingGlassIcon className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="text-xs font-medium text-indigo-900">Global Search</h3>
-                                            <p className="text-xs text-indigo-700 hidden sm:block">Search across all entities</p>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            console.log('🔍 AdminDashboard: Dispatching open-global-search event');
+                                            if (typeof window !== 'undefined') {
+                                                const event = new CustomEvent('open-global-search');
+                                                window.dispatchEvent(event);
+                                                console.log('🔍 AdminDashboard: Event dispatched successfully');
+                                            } else {
+                                                console.error('🔍 AdminDashboard: Window is undefined');
+                                            }
+                                        }}
+                                        className="p-2 sm:p-3 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <MagnifyingGlassIcon className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-indigo-900">Global Search</h3>
+                                                <p className="text-xs text-indigo-700 hidden sm:block">Search across all entities</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowReferralTester(true)}
+                                        className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded hover:bg-yellow-100 transition-colors text-left"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <TrophyIcon className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600 flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-xs font-medium text-yellow-900">Test Referral Codes</h3>
+                                                <p className="text-xs text-yellow-700 hidden sm:block">Debug referral system</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Referral Code Tester Modal */}
+            {showReferralTester && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                            <div className="flex items-center space-x-3">
+                                <TrophyIcon className="w-6 h-6 text-yellow-600" />
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-900">Referral Code System Tester</h2>
+                                    <p className="text-sm text-gray-500">Debug and test referral code functionality</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowReferralTester(false)}
+                                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <ReferralCodeTester />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

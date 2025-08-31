@@ -16,15 +16,7 @@ const DevPanel = ({ isOpen, onClose }) => {
         setStatus(devHelpers.getStatus());
     };
 
-    const handleRateLimitBypass = (enable) => {
-        // Rate limiting removed
-        updateStatus();
-    };
-
-    const handleClearRateLimits = () => {
-        // Rate limiting removed
-        updateStatus();
-    };
+    // Rate limiting removed
 
     if (!isVisible) return null;
 
@@ -105,12 +97,12 @@ const DevPanel = ({ isOpen, onClose }) => {
 
                             <button
                                 onClick={() => {
-                                    window.devHelpers?.clearRateLimits();
+                                    console.log('🔧 Rate limiting removed');
                                     updateStatus();
                                 }}
-                                className="w-full px-3 py-2 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                                className="w-full px-3 py-2 text-sm font-medium bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed"
                             >
-                                Force Clear Rate Limits
+                                Rate Limiting Removed
                             </button>
                         </div>
                     </div>

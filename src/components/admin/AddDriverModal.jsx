@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 // Removed SearchableDropdown import since we're not using it anymore
 import driverService from '../../services/driverService';
+import apiService from '../../services/api';
 import toast from 'react-hot-toast';
 import Button from '../ui/Button';
 
@@ -49,6 +50,9 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
                 email: formData.email,
                 ...(formData.referralCode && { referralCode: formData.referralCode })
             };
+
+            console.log('🔍 AddDriverModal: Sending driver data:', driverData);
+            console.log('🔍 AddDriverModal: Referral code being sent:', formData.referralCode);
 
             const response = await driverService.inviteDriver(driverData);
             toast.success('Driver invitation sent successfully!');
@@ -153,6 +157,26 @@ const AddDriverModal = ({ isOpen, onClose, onDriverAdded }) => {
                                             placeholder="Enter referral code"
                                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                try {
+                                                    const response = await apiService.getAvailableReferralCodes();
+                                                    console.log('🔍 Available referral codes:', response);
+                                                    if (response.success && response.data) {
+                                                        toast.success(`Found ${response.data.length} available referral codes`);
+                                                    } else {
+                                                        toast.error('No referral codes available');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Error fetching referral codes:', error);
+                                                    toast.error('Failed to fetch referral codes');
+                                                }
+                                            }}
+                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800"
+                                        >
+                                            View Available
+                                        </button>
                                     </div>
                                     {formData.referralCode && (
                                         <div className="mt-1 text-xs text-blue-600">

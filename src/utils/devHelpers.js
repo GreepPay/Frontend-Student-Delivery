@@ -9,8 +9,7 @@ class DevHelpers {
     getStatus() {
         return {
             isDevelopment: this.isDevelopment,
-            rateLimitBypass: false, // Rate limiting removed
-            rateLimiterStatus: { activeEndpoints: 0, minInterval: 0 } // Rate limiting removed
+            // Rate limiting removed
         };
     }
 
@@ -24,12 +23,7 @@ class DevHelpers {
             try {
                 return await fn();
             } catch (error) {
-                if (error.response?.status === 429 && attempt < maxRetries) {
-                    const delay = baseDelay * Math.pow(2, attempt);
-                    console.log(`🔧 Development: Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    continue;
-                }
+                // Rate limiting removed - all requests allowed
                 throw error;
             }
         }

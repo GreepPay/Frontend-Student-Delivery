@@ -170,7 +170,7 @@ const LoginPage = () => {
                     }
                     break;
                 case 429:
-                    errorMessage = data?.message || 'Too many login attempts. Please wait a moment before trying again.';
+                    errorMessage = data?.message || 'Request failed. Please try again.';
                     errorType = 'error';
                     break;
                 case 500:
