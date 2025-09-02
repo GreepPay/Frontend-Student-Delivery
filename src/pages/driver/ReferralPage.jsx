@@ -55,24 +55,31 @@ const ReferralPage = () => {
             });
 
             if (codeResponse.success && statsResponse.success) {
-                // The API returns referralsGiven and referralReceived, not referralsAsReferrer
+                // Updated for permanent referral codes
                 const mergedData = {
                     ...statsResponse.data,
-                    referralCode: codeResponse.data.referralCode || codeResponse.data.referralCode,
-                    // Map the correct referral data structure
+                    referralCode: codeResponse.data.referralCode || codeResponse.data.code,
+                    // Map the correct referral data structure for permanent codes
                     referrals: statsResponse.data.referrals || [],
                     referralsAsReferrer: statsResponse.data.referrals || [],
-                    referralsGiven: statsResponse.data.referralsGiven || { total: 0, pending: 0, completed: 0, expired: 0, totalPoints: 0 },
-                    referralReceived: statsResponse.data.referralReceived
+                    referralsGiven: statsResponse.data.referralsGiven || { total: 0, pending: 0, completed: 0, totalPoints: 0 },
+                    referralReceived: statsResponse.data.referralReceived,
+                    // New permanent code fields
+                    totalUses: codeResponse.data.totalUses || 0,
+                    usageHistory: codeResponse.data.usageHistory || [],
+                    isActive: codeResponse.data.status === 'active',
+                    neverExpires: true // All codes are now permanent
                 };
-                console.log('🔍 Referral data debug:', {
+                console.log('🔍 Permanent referral data debug:', {
                     statsResponse: statsResponse.data,
                     codeResponse: codeResponse.data,
                     mergedData,
                     referrals: statsResponse.data.referrals,
                     referralsCount: statsResponse.data.referrals?.length || 0,
                     referralsGiven: statsResponse.data.referralsGiven,
-                    referralReceived: statsResponse.data.referralReceived
+                    referralReceived: statsResponse.data.referralReceived,
+                    totalUses: codeResponse.data.totalUses,
+                    isActive: codeResponse.data.status
                 });
                 setReferralData(mergedData);
             } else if (codeResponse.success) {
@@ -244,7 +251,7 @@ const ReferralPage = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-0">Your Referral Code</h2>
                             <div className="flex items-center space-x-2">
-                                <span className="text-xs sm:text-sm text-gray-500">Status: Active</span>
+                                <span className="text-xs sm:text-sm text-gray-500">Status: Active & Permanent</span>
                                 <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                             </div>
                         </div>
@@ -272,6 +279,47 @@ const ReferralPage = () => {
                                     <p className="text-xs sm:text-sm font-medium text-gray-900">Friend: {configData?.activationBonus?.refereePoints || 5} points</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Usage History Section - New for Permanent Codes */}
+                {referralData?.usageHistory && referralData.usageHistory.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Code Usage History</h2>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-xs sm:text-sm text-gray-500">Total Uses: {referralData.totalUses || 0}</span>
+                                <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            {referralData.usageHistory.slice(0, 5).map((usage, index) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <UserIcon className="h-4 w-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {usage.driverName || 'New Driver'}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Used on {new Date(usage.usedAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500">Status</p>
+                                        <p className="text-xs font-medium text-green-600">Active</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {referralData.usageHistory.length > 5 && (
+                                <p className="text-xs text-gray-500 text-center">
+                                    +{referralData.usageHistory.length - 5} more uses
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -312,7 +360,7 @@ const ReferralPage = () => {
                                         <UserIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                                     </div>
                                     <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">1. Share Your Code</h3>
-                                    <p className="text-xs sm:text-sm text-gray-600">Share your referral code with new drivers</p>
+                                    <p className="text-xs sm:text-sm text-gray-600">Share your permanent referral code with new drivers</p>
                                 </div>
                                 <div className="text-center">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -369,7 +417,7 @@ const ReferralPage = () => {
                                             <ClockIcon className="h-5 w-5 text-blue-500 mr-2" />
                                             <span className="text-sm text-gray-900">Code Expires</span>
                                         </div>
-                                        <span className="text-xs text-gray-600">{configData?.timeLimits?.referralCodeExpiryDays || 30} days</span>
+                                        <span className="text-xs text-gray-600">Never expires</span>
                                     </div>
                                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                         <div className="flex items-center">

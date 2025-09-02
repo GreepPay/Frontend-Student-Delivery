@@ -64,29 +64,43 @@ const DriverProfilePage = () => {
             console.log('📋 Profile options data received:', data);
 
             if (data.success && data.data) {
-                if (data.data.addresses) {
-                    setServiceAreas([
-                        { value: '', label: 'Select Service Area' },
-                        ...data.data.addresses.map(addr => ({ value: addr, label: addr }))
-                    ]);
-                    console.log('✅ Service areas loaded:', data.data.addresses);
-                }
+                // Use backend lists when available, otherwise sensible defaults
+                const addresses = Array.isArray(data.data.addresses) && data.data.addresses.length > 0
+                    ? data.data.addresses
+                    : ['Kucuk', 'Lefkosa', 'Girne', 'Iskele', 'Guzelyurt', 'Lefke'];
+                setServiceAreas([
+                    { value: '', label: 'Select Service Area' },
+                    ...addresses.map(addr => ({ value: addr, label: addr }))
+                ]);
+                console.log('✅ Service areas loaded:', addresses);
 
-                if (data.data.transportationMethods) {
-                    setTransportationMethods([
-                        { value: '', label: 'Select Transportation Method' },
-                        ...data.data.transportationMethods.map(method => ({ value: method, label: method }))
-                    ]);
-                    console.log('✅ Transportation methods loaded:', data.data.transportationMethods);
-                }
+                const methods = Array.isArray(data.data.transportationMethods) && data.data.transportationMethods.length > 0
+                    ? data.data.transportationMethods
+                    : ['Walking', 'Bicycle', 'Motorcycle', 'Car', 'Public Transport', 'Other'];
+                setTransportationMethods([
+                    { value: '', label: 'Select Transportation Method' },
+                    ...methods.map(method => ({ value: method, label: method }))
+                ]);
+                console.log('✅ Transportation methods loaded:', methods);
 
-                if (data.data.universities) {
-                    setUniversities([
-                        { value: '', label: 'Select University' },
-                        ...data.data.universities.map(uni => ({ value: uni, label: uni }))
-                    ]);
-                    console.log('✅ Universities loaded:', data.data.universities);
-                }
+                const universitiesList = Array.isArray(data.data.universities) && data.data.universities.length > 0
+                    ? data.data.universities
+                    : [
+                        'Eastern Mediterranean University', 'Cyprus West University', 'Cyprus International University',
+                        'Near East University', 'Girne American University', 'European University of Lefke',
+                        'University of Kyrenia', 'Final International University', 'University of Mediterranean Karpasia',
+                        'Lefke European University', 'American University of Cyprus', 'Cyprus Science University',
+                        'University of Central Lancashire Cyprus'
+                    ];
+                setUniversities([
+                    { value: '', label: 'Select University' },
+                    ...universitiesList.map(uni => ({ value: uni, label: uni }))
+                ]);
+                console.log('✅ Universities loaded:', universitiesList);
+            } else {
+                console.warn('⚠️ Profile options API returned unexpected structure:', data);
+                // Force fallback data
+                throw new Error('API returned unexpected structure');
             }
         } catch (error) {
             console.error('❌ Error fetching profile options:', error);
@@ -439,6 +453,7 @@ const DriverProfilePage = () => {
 
     useEffect(() => {
         console.log('🔄 Component mounted, fetching profile options...');
+        console.log('🔄 Current state - serviceAreas:', serviceAreas.length, 'transportationMethods:', transportationMethods.length);
         fetchProfileOptions();
     }, [fetchProfileOptions]);
 
@@ -953,7 +968,7 @@ const DriverProfilePage = () => {
                                                 onChange={(value) => setFormData(prev => ({ ...prev, university: value }))}
                                                 placeholder="Select University"
                                                 searchPlaceholder="Search universities..."
-                                                loading={universities.length === 0}
+                                                loading={false}
                                                 emptyMessage="No universities available"
                                                 allowClear={true}
                                             />
@@ -1012,7 +1027,7 @@ const DriverProfilePage = () => {
                                                 onChange={(value) => setFormData(prev => ({ ...prev, transportationMethod: value }))}
                                                 placeholder="Select Transportation Method"
                                                 searchPlaceholder="Search transportation methods..."
-                                                loading={transportationMethods.length === 0}
+                                                loading={false}
                                                 emptyMessage="No transportation methods available"
                                                 allowClear={true}
                                             />
@@ -1041,7 +1056,7 @@ const DriverProfilePage = () => {
                                                 onChange={(value) => setFormData(prev => ({ ...prev, transportationArea: value }))}
                                                 placeholder="Select Service Area"
                                                 searchPlaceholder="Search service areas..."
-                                                loading={serviceAreas.length === 0}
+                                                loading={false}
                                                 emptyMessage="No service areas available"
                                                 allowClear={true}
                                             />

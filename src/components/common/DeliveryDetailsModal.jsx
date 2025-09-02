@@ -1,5 +1,6 @@
 import React from 'react';
 import { XMarkIcon, TruckIcon, UserIcon, PhoneIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { mapsUtils } from '../../utils/formMemory';
 
 const DeliveryDetailsModal = ({
     isOpen,
@@ -112,16 +113,28 @@ const DeliveryDetailsModal = ({
                                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                         <span className="text-sm font-medium text-blue-700">Pickup</span>
                                     </div>
-                                    {delivery.pickupLocationLink && (
-                                        <a
-                                            href={delivery.pickupLocationLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                                        >
-                                            Open Map
-                                        </a>
-                                    )}
+                                    <button
+                                        onClick={() => {
+                                            // Try to extract coordinates from pickupLocationLink first
+                                            if (delivery.pickupLocationLink) {
+                                                const navUrl = mapsUtils.extractAndCreateNavigationLink(
+                                                    delivery.pickupLocationLink,
+                                                    delivery.pickupLocationDescription || 'Pickup Location'
+                                                );
+                                                if (navUrl) {
+                                                    window.open(navUrl, '_blank');
+                                                    return;
+                                                }
+                                            }
+
+                                            // Fallback to search
+                                            const searchUrl = mapsUtils.generateSearchLink(delivery.pickupLocationDescription || delivery.pickupLocation);
+                                            window.open(searchUrl, '_blank');
+                                        }}
+                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium bg-blue-100 px-2 py-1 rounded-md"
+                                    >
+                                        Navigate
+                                    </button>
                                 </div>
                                 <p className="text-sm text-gray-900">{delivery.pickupLocationDescription || delivery.pickupLocation}</p>
                             </div>
@@ -133,16 +146,28 @@ const DeliveryDetailsModal = ({
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                         <span className="text-sm font-medium text-green-700">Delivery</span>
                                     </div>
-                                    {delivery.deliveryLocationLink && (
-                                        <a
-                                            href={delivery.deliveryLocationLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-green-600 hover:text-green-800 font-medium"
-                                        >
-                                            Open Map
-                                        </a>
-                                    )}
+                                    <button
+                                        onClick={() => {
+                                            // Try to extract coordinates from deliveryLocationLink first
+                                            if (delivery.deliveryLocationLink) {
+                                                const navUrl = mapsUtils.extractAndCreateNavigationLink(
+                                                    delivery.deliveryLocationLink,
+                                                    delivery.deliveryLocationDescription || 'Delivery Location'
+                                                );
+                                                if (navUrl) {
+                                                    window.open(navUrl, '_blank');
+                                                    return;
+                                                }
+                                            }
+
+                                            // Fallback to search
+                                            const searchUrl = mapsUtils.generateSearchLink(delivery.deliveryLocationDescription || delivery.deliveryLocation);
+                                            window.open(searchUrl, '_blank');
+                                        }}
+                                        className="text-xs text-green-600 hover:text-green-800 font-medium bg-green-100 px-2 py-1 rounded-md"
+                                    >
+                                        Navigate
+                                    </button>
                                 </div>
                                 <p className="text-sm text-gray-900">{delivery.deliveryLocationDescription || delivery.deliveryLocation}</p>
                             </div>

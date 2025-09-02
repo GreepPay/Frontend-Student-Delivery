@@ -1,6 +1,5 @@
 import axios from 'axios';
 import requestDeduplicator from '../utils/requestDeduplicator';
-import devHelpers from '../utils/devHelpers';
 import toast from 'react-hot-toast';
 
 // Request deduplication to prevent duplicate API calls
@@ -411,6 +410,7 @@ class ApiService {
             });
 
             // Return fallback data if API fails
+            console.log('📋 API Service: Using fallback profile options due to API error');
             return {
                 success: true,
                 data: {
@@ -1759,19 +1759,41 @@ class ApiService {
         return response.data;
     }
 
-    // Referral endpoints
+    // Referral endpoints - Updated for permanent referral codes
     async generateReferralCode(driverId) {
+        console.log('🔍 API Service: Generating permanent referral code for driver:', driverId);
         const response = await api.post(`/referral/driver/${driverId}/generate`);
+        console.log('🔍 API Service: Generate referral code response:', response.data);
         return response.data;
     }
 
     async getDriverReferralCode(driverId) {
+        console.log('🔍 API Service: Getting driver referral code for:', driverId);
         const response = await api.get(`/referral/driver/${driverId}/code`);
+        console.log('🔍 API Service: Get driver referral code response:', response.data);
         return response.data;
     }
 
     async useReferralCode(driverId, referralCode) {
+        console.log('🔍 API Service: Using referral code:', referralCode, 'for driver:', driverId);
         const response = await api.post(`/referral/driver/${driverId}/use`, { referralCode });
+        console.log('🔍 API Service: Use referral code response:', response.data);
+        return response.data;
+    }
+
+    // New method to get referral code usage history
+    async getReferralCodeUsageHistory(referralCode) {
+        console.log('🔍 API Service: Getting usage history for referral code:', referralCode);
+        const response = await api.get(`/referral/code/${referralCode}/usage-history`);
+        console.log('🔍 API Service: Usage history response:', response.data);
+        return response.data;
+    }
+
+    // New method to validate referral code
+    async validateReferralCode(referralCode) {
+        console.log('🔍 API Service: Validating referral code:', referralCode);
+        const response = await api.get(`/referral/code/${referralCode}/validate`);
+        console.log('🔍 API Service: Validate referral code response:', response.data);
         return response.data;
     }
 

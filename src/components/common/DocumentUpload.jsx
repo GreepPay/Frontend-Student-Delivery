@@ -95,67 +95,68 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
         setUploadingAll(true);
 
         try {
-            const uploadPromises = filesToUpload.map(async (documentType) => {
-                const file = selectedFiles[documentType];
-
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: Only image files (JPEG, PNG, WebP) are allowed. PDF files are not supported.`);
-                }
-
-                // Validate file size
-                if (file.size > 5 * 1024 * 1024) {
-                    throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: File size must be less than 5MB`);
-                }
-
-                let fileToUpload = file;
-
-                // Compress images before upload
-                if (file.type.startsWith('image/')) {
-                    try {
-                        fileToUpload = await compressImage(file, 1200, 1200, 0.8);
-                    } catch (compressionError) {
-                        console.warn(`⚠️ Image compression failed for ${documentType}:`, compressionError);
-                        fileToUpload = file;
-                    }
-                }
-
-                const formData = new FormData();
-                formData.append('file', fileToUpload);
-
-                const response = await apiService.uploadDriverDocument(documentType, formData);
-
-                if (!response.success) {
-                    throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: ${response.message || 'Upload failed'}`);
-                }
-
-                return { documentType, success: true, data: response.data };
-            });
-
-            const results = await Promise.allSettled(uploadPromises);
-
+            // Upload files sequentially to avoid overwhelming the server
             let successCount = 0;
             let errorMessages = [];
 
-            results.forEach((result, index) => {
-                const documentType = filesToUpload[index];
-                if (result.status === 'fulfilled' && result.value.success) {
-                    successCount++;
-                    // Clear the selected file
-                    setSelectedFiles(prev => {
-                        const newState = { ...prev };
-                        delete newState[documentType];
-                        return newState;
-                    });
-                    // Notify parent component
-                    if (onDocumentUploaded) {
-                        onDocumentUploaded(documentType, result.value.data);
+            for (const documentType of filesToUpload) {
+                try {
+                    const file = selectedFiles[documentType];
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: Only image files (JPEG, PNG, WebP) are allowed. PDF files are not supported.`);
                     }
-                } else {
-                    const errorMessage = result.status === 'rejected' ? result.reason.message : 'Upload failed';
+
+                    // Validate file size
+                    if (file.size > 5 * 1024 * 1024) {
+                        throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: File size must be less than 5MB`);
+                    }
+
+                    let fileToUpload = file;
+
+                    // Compress images before upload
+                    if (file.type.startsWith('image/')) {
+                        try {
+                            fileToUpload = await compressImage(file, 1200, 1200, 0.8);
+                        } catch (compressionError) {
+                            console.warn(`⚠️ Image compression failed for ${documentType}:`, compressionError);
+                            fileToUpload = file;
+                        }
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', fileToUpload);
+
+                    console.log(`📤 Uploading ${documentType} document...`);
+                    const response = await apiService.uploadDriverDocument(documentType, formData);
+
+                    if (response.success) {
+                        successCount++;
+                        // Clear the selected file
+                        setSelectedFiles(prev => {
+                            const newState = { ...prev };
+                            delete newState[documentType];
+                            return newState;
+                        });
+                        // Notify parent component
+                        if (onDocumentUploaded) {
+                            onDocumentUploaded(documentType, response.data);
+                        }
+                        console.log(`✅ Successfully uploaded ${documentType}`);
+                    } else {
+                        throw new Error(`${documentTypes.find(d => d.key === documentType)?.label}: ${response.message || 'Upload failed'}`);
+                    }
+
+                    // Add a small delay between uploads to prevent overwhelming the server
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                } catch (error) {
+                    console.error(`❌ Error uploading ${documentType}:`, error);
+                    const errorMessage = error.message || 'Upload failed';
                     errorMessages.push(errorMessage);
                 }
-            });
+            }
 
             if (successCount > 0) {
                 toast.success(`✅ Successfully uploaded ${successCount} document${successCount > 1 ? 's' : ''}!`);
@@ -466,9 +467,28 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
                                                                 Selected: {selectedFiles[docType.key]?.name}
                                                                 ({(selectedFiles[docType.key]?.size / 1024 / 1024).toFixed(2)} MB)
                                                             </p>
-                                                            <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full self-start sm:self-auto">
-                                                                Ready to upload
-                                                            </span>
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                                                    Ready to upload
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => handleUpload(docType.key)}
+                                                                    disabled={isUploading}
+                                                                    className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                                                                >
+                                                                    {isUploading ? (
+                                                                        <>
+                                                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                                            <span>Uploading...</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <DocumentArrowUpIcon className="w-3 h-3" />
+                                                                            <span>Upload</span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     )}
                                                     <p className="text-xs text-gray-500">

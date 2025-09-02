@@ -13,7 +13,7 @@ import socketService from '../../services/socketService';
 import GoogleMapsLocationInput from '../../components/common/GoogleMapsLocationInput';
 import SmartInput from '../../components/common/SmartInput';
 import FormMemoryPanel from '../../components/common/FormMemoryPanel';
-import formMemory from '../../utils/formMemory';
+import formMemory, { mapsUtils } from '../../utils/formMemory';
 import { capitalizeName } from '../../utils/nameUtils';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import Pagination from '../../components/common/Pagination';
@@ -1902,16 +1902,28 @@ Student Delivery Team`;
                                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                             <span className="text-sm font-medium text-blue-700">Pickup</span>
                                         </div>
-                                        {selectedDelivery.pickupLocationLink && (
-                                            <a
-                                                href={selectedDelivery.pickupLocationLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                                            >
-                                                Open Map
-                                            </a>
-                                        )}
+                                        <button
+                                            onClick={() => {
+                                                // Try to extract coordinates from pickupLocationLink first
+                                                if (selectedDelivery.pickupLocationLink) {
+                                                    const navUrl = mapsUtils.extractAndCreateNavigationLink(
+                                                        selectedDelivery.pickupLocationLink,
+                                                        selectedDelivery.pickupLocationDescription || 'Pickup Location'
+                                                    );
+                                                    if (navUrl) {
+                                                        window.open(navUrl, '_blank');
+                                                        return;
+                                                    }
+                                                }
+
+                                                // Fallback to search
+                                                const searchUrl = mapsUtils.generateSearchLink(selectedDelivery.pickupLocationDescription || selectedDelivery.pickupLocation);
+                                                window.open(searchUrl, '_blank');
+                                            }}
+                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium bg-blue-100 px-2 py-1 rounded-md"
+                                        >
+                                            Navigate
+                                        </button>
                                     </div>
                                     <p className="text-sm text-gray-900">{selectedDelivery.pickupLocationDescription || selectedDelivery.pickupLocation}</p>
                                 </div>
@@ -1923,16 +1935,28 @@ Student Delivery Team`;
                                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                             <span className="text-sm font-medium text-green-700">Delivery</span>
                                         </div>
-                                        {selectedDelivery.deliveryLocationLink && (
-                                            <a
-                                                href={selectedDelivery.deliveryLocationLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-green-600 hover:text-green-800 font-medium"
-                                            >
-                                                Open Map
-                                            </a>
-                                        )}
+                                        <button
+                                            onClick={() => {
+                                                // Try to extract coordinates from deliveryLocationLink first
+                                                if (selectedDelivery.deliveryLocationLink) {
+                                                    const navUrl = mapsUtils.extractAndCreateNavigationLink(
+                                                        selectedDelivery.deliveryLocationLink,
+                                                        selectedDelivery.deliveryLocationDescription || 'Delivery Location'
+                                                    );
+                                                    if (navUrl) {
+                                                        window.open(navUrl, '_blank');
+                                                        return;
+                                                    }
+                                                }
+
+                                                // Fallback to search
+                                                const searchUrl = mapsUtils.generateSearchLink(selectedDelivery.deliveryLocationDescription || selectedDelivery.deliveryLocation);
+                                                window.open(searchUrl, '_blank');
+                                            }}
+                                            className="text-xs text-green-600 hover:text-green-800 font-medium bg-green-100 px-2 py-1 rounded-md"
+                                        >
+                                            Navigate
+                                        </button>
                                     </div>
                                     <p className="text-sm text-gray-900">{selectedDelivery.deliveryLocationDescription || selectedDelivery.deliveryLocation}</p>
                                 </div>

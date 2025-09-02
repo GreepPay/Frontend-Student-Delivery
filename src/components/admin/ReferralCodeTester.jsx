@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     MagnifyingGlassIcon,
-    PlusIcon,
     ClipboardDocumentIcon,
     CheckCircleIcon,
     XCircleIcon,
@@ -80,7 +79,7 @@ const ReferralCodeTester = () => {
                     addTestResult(
                         'Test Driver Invitation',
                         'success',
-                        'Driver invitation with referral code successful',
+                        'Driver invitation with permanent referral code successful',
                         response
                     );
                 } catch (error) {
@@ -97,6 +96,29 @@ const ReferralCodeTester = () => {
                     'warning',
                     'Skipped - No referral codes available'
                 );
+            }
+
+            // Test 2.5: Validate Referral Code
+            if (availableCodes.length > 0) {
+                const testCode = availableCodes[0].code || availableCodes[0].referralCode;
+                addTestResult('Validate Referral Code', 'info', `Validating code: ${testCode}`);
+
+                try {
+                    const response = await apiService.validateReferralCode(testCode);
+                    addTestResult(
+                        'Validate Referral Code',
+                        'success',
+                        `Code ${testCode} is valid and active`,
+                        response
+                    );
+                } catch (error) {
+                    addTestResult(
+                        'Validate Referral Code',
+                        'error',
+                        error.response?.data?.error || error.message,
+                        error.response?.data
+                    );
+                }
             }
 
             // Test 3: Generate Referral Code (if we have a driver ID)
@@ -184,7 +206,30 @@ const ReferralCodeTester = () => {
                 }
             }
 
-            // Test 6: Get Referral Rewards Configuration
+            // Test 6: Get Referral Code Usage History
+            if (availableCodes.length > 0) {
+                const testCode = availableCodes[0].code || availableCodes[0].referralCode;
+                addTestResult('Get Referral Code Usage History', 'info', `Getting usage history for: ${testCode}`);
+
+                try {
+                    const response = await apiService.getReferralCodeUsageHistory(testCode);
+                    addTestResult(
+                        'Get Referral Code Usage History',
+                        'success',
+                        `Usage history retrieved - ${response.data?.usageHistory?.length || 0} uses recorded`,
+                        response
+                    );
+                } catch (error) {
+                    addTestResult(
+                        'Get Referral Code Usage History',
+                        'error',
+                        error.response?.data?.error || error.message,
+                        error.response?.data
+                    );
+                }
+            }
+
+            // Test 7: Get Referral Rewards Configuration
             addTestResult('Get Referral Rewards Configuration', 'info', 'Testing configuration...');
             try {
                 const response = await apiService.getReferralRewardsConfiguration();
