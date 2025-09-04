@@ -392,6 +392,7 @@ const GlobalSearch = () => {
         const allResults = [];
         const queryWords = query.split(' ').filter(word => word.length > 0);
 
+        // First, search through navigation items
         searchCategories.forEach(category => {
             category.items.forEach(item => {
                 // Enhanced search logic
@@ -447,12 +448,56 @@ const GlobalSearch = () => {
             });
         });
 
+        // Then, try to search through delivery data stored locally
+        if (user && (user.userType === 'admin' || user.role === 'admin')) {
+            try {
+                // Try to get deliveries from localStorage if available
+                const storedDeliveries = localStorage.getItem('deliveries');
+                if (storedDeliveries) {
+                    const deliveries = JSON.parse(storedDeliveries);
+                    if (Array.isArray(deliveries)) {
+                        const matchingDeliveries = deliveries.filter(delivery => {
+                            const deliveryText = [
+                                delivery.deliveryCode || '',
+                                delivery.customerName || '',
+                                delivery.customerPhone || '',
+                                delivery.pickupLocationDescription || delivery.pickupLocation || '',
+                                delivery.deliveryLocationDescription || delivery.deliveryLocation || '',
+                                delivery.status || '',
+                                delivery.priority || ''
+                            ].join(' ').toLowerCase();
+
+                            return deliveryText.includes(query);
+                        });
+
+                        matchingDeliveries.forEach(delivery => {
+                            allResults.push({
+                                id: `delivery-${delivery._id || delivery.id}`,
+                                name: `Delivery ${delivery.deliveryCode || 'Unknown'}`,
+                                description: `${delivery.customerName || 'Unknown Customer'} • ${delivery.pickupLocationDescription || delivery.pickupLocation || 'Unknown Pickup'} → ${delivery.deliveryLocationDescription || delivery.deliveryLocation || 'Unknown Delivery'}`,
+                                path: `/admin/deliveries?search=${delivery.deliveryCode || delivery._id}`,
+                                category: '📦 Deliveries',
+                                categoryIcon: TruckIcon,
+                                categoryColor: 'text-blue-600',
+                                categoryBgColor: 'bg-blue-50',
+                                relevanceScore: 90,
+                                type: 'delivery',
+                                deliveryData: delivery
+                            });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('🔍 Error searching local deliveries:', error);
+            }
+        }
+
         // Sort results by relevance score
         allResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
         setResults(allResults);
         setSelectedIndex(0);
-    }, [searchCategories]);
+    }, [searchCategories, user]);
 
     useEffect(() => {
         performSearch(query);

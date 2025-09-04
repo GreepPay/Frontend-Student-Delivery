@@ -35,6 +35,37 @@ const BroadcastPage = () => {
     const [showManualLocation, setShowManualLocation] = useState(false);
     const [manualLocation, setManualLocation] = useState({ lat: 35.1255, lng: 33.3095 });
 
+    // Helper function to clean location text (remove URLs and show meaningful descriptions)
+    const cleanLocationText = (text) => {
+        if (!text) return 'Location not specified';
+
+        // Remove Google Maps URLs
+        const cleaned = text.replace(/https?:\/\/[^\s]+/g, '').trim();
+
+        // If the cleaned text is empty or just whitespace, return a fallback
+        if (!cleaned) {
+            return 'Location not specified';
+        }
+
+        // If it's just coordinates, provide a more meaningful description
+        if (/^\d+\.\d+,\d+\.\d+$/.test(cleaned)) {
+            return 'Location coordinates provided';
+        }
+
+        return cleaned;
+    };
+
+    // Get priority styling
+    const getPriorityStyle = (priority) => {
+        const styles = {
+            high: 'bg-red-50 text-red-700 border-red-300',
+            normal: 'bg-green-50 text-green-700 border-green-300',
+            low: 'bg-blue-50 text-blue-700 border-blue-300',
+            urgent: 'bg-orange-50 text-orange-700 border-orange-300'
+        };
+        return styles[priority] || styles.normal;
+    };
+
     // Test modal function
     const testModal = () => {
         console.log('🧪 Testing notification-based delivery modal');
@@ -261,10 +292,10 @@ const BroadcastPage = () => {
             // Play notification sound
             soundService.playSound('notification');
 
-            // Show snackbar notification with better description
-            const pickupDesc = data.pickupLocationDescription ? ` (${data.pickupLocationDescription})` : '';
-            const deliveryDesc = data.deliveryLocationDescription ? ` (${data.deliveryLocationDescription})` : '';
-            const message = `New delivery available: ${data.pickupLocation}${pickupDesc} → ${data.deliveryLocation}${deliveryDesc}`;
+            // Show snackbar notification with cleaned location descriptions
+            const pickupLocation = cleanLocationText(data.pickupLocationDescription || data.pickupLocation);
+            const deliveryLocation = cleanLocationText(data.deliveryLocationDescription || data.deliveryLocation);
+            const message = `New delivery available: ${pickupLocation} → ${deliveryLocation}`;
             showSuccess(message);
         };
 
@@ -373,22 +404,21 @@ const BroadcastPage = () => {
                     <div className="p-3 sm:p-4 lg:p-6">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                             <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-blue-100 rounded-lg">
-                                    <MegaphoneIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                                <div className="bg-white border-2 border-green-300 p-2 rounded-lg">
+                                    <MegaphoneIcon className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Available Deliveries</h1>
-                                    <p className="text-sm sm:text-base text-gray-600">Accept deliveries near your location</p>
+                                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Available Deliveries</h1>
+                                    <p className="text-sm text-gray-600">Accept deliveries near your location</p>
                                 </div>
                             </div>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                                 {/* Online Status Indicator */}
-                                <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg border-2 ${isOnline ? 'bg-green-50 text-green-700 border-green-300' : 'bg-red-50 text-red-700 border-red-300'}`}>
                                     <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                    <span className="text-xs sm:text-sm font-medium">
+                                    <span className="text-sm font-medium">
                                         {isOnline ? 'Online' : 'Offline'}
                                     </span>
-
                                 </div>
 
                                 {/* Refresh button removed - WebSocket provides real-time updates */}
@@ -634,7 +664,7 @@ const BroadcastPage = () => {
                                         const connected = socketService.isConnected();
                                         console.log('🔌 Socket connection result:', connected);
                                         if (connected) {
-                                            showSuccess('Socket connected successfully!');
+                                            // Socket connected silently
                                         } else {
                                             showError('Socket connection failed!');
                                         }
@@ -656,7 +686,7 @@ const BroadcastPage = () => {
                                     const success = socketService.authenticate(user._id || user.id, user.userType || user.role);
 
                                     if (success) {
-                                        showSuccess('Authentication sent! Check backend for connection.');
+                                        // Authentication sent silently
                                     } else {
                                         showError('Authentication failed - socket not connected');
                                     }
@@ -686,7 +716,7 @@ const BroadcastPage = () => {
 
                                     if (data.success) {
                                         const connectedUsers = data.data?.connectedUsers || 0;
-                                        showSuccess(`Backend shows ${connectedUsers} connected users`);
+                                        // User count updated silently
 
                                         if (connectedUsers > 0) {
                                             console.log('✅ Authentication working! Backend recognizes the connection.');
@@ -764,11 +794,13 @@ const BroadcastPage = () => {
 
                 {/* Available Deliveries Header */}
                 {/* Location Info */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                        <div className="flex items-center space-x-2">
-                            <MapPinIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                            <span className="text-xs sm:text-sm text-blue-800">
+                <div className="bg-white border-2 border-green-200 rounded-xl p-4 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-white border-2 border-green-300 p-2 rounded-lg">
+                                <MapPinIcon className="w-5 h-5 text-green-600" />
+                            </div>
+                            <span className="text-sm text-gray-700">
                                 {userLocation ? (
                                     `Your location: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`
                                 ) : (
@@ -861,8 +893,10 @@ const BroadcastPage = () => {
                         ))}
                     </div>
                 ) : broadcasts.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                        <MegaphoneIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center">
+                        <div className="bg-white border-2 border-gray-300 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <MegaphoneIcon className="w-8 h-8 text-gray-500" />
+                        </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No deliveries available</h3>
                         <p className="text-gray-600 mb-4">There are currently no deliveries in your area.</p>
                         <div className="text-xs text-gray-500 mb-4">
@@ -881,17 +915,22 @@ const BroadcastPage = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {broadcasts.map((broadcast) => (
-                            <div key={broadcast.id || broadcast._id || broadcast.deliveryId} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div key={broadcast.id || broadcast._id || broadcast.deliveryId} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-200">
                                 {/* Header */}
-                                <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 sm:p-4 text-white">
+                                <div className="bg-white border-b-2 border-green-200 p-3 sm:p-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <TruckIcon className="w-5 h-5" />
-                                            <span className="text-sm sm:text-base font-semibold">New Delivery</span>
+                                            <div className="bg-white border-2 border-green-300 p-1 rounded-lg">
+                                                <TruckIcon className="w-5 h-5 text-green-600" />
+                                            </div>
+                                            <div>
+                                                <span className="text-sm sm:text-base font-semibold text-gray-900">New Delivery</span>
+                                                <div className="text-xs text-gray-500">Available for pickup</div>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center space-x-1 bg-white bg-opacity-20 px-2 py-1 rounded">
-                                            <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                                            <span className="text-xs sm:text-sm font-medium">
+                                        <div className="flex items-center space-x-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded-lg">
+                                            <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                                            <span className="text-xs sm:text-sm font-medium text-gray-700">
                                                 {broadcast.timeRemaining ? `${Math.floor(broadcast.timeRemaining / 60)}:${(broadcast.timeRemaining % 60).toString().padStart(2, '0')}` : '--:--'}
                                             </span>
                                         </div>
@@ -902,56 +941,64 @@ const BroadcastPage = () => {
                                 <div className="p-3 sm:p-4 space-y-3">
                                     {/* Delivery Code and Priority */}
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="font-mono text-xs sm:text-sm bg-gray-100 px-2 py-1 rounded">
-                                                {broadcast.deliveryCode}
+                                        <div className="flex items-center space-x-3">
+                                            <span className="font-mono text-sm bg-white border-2 border-gray-300 px-3 py-1.5 rounded-lg text-gray-700">
+                                                #{broadcast.deliveryCode}
                                             </span>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(broadcast.priority)}`}>
-                                                {broadcast.priority}
+                                            <span className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 ${getPriorityStyle(broadcast.priority)}`}>
+                                                {broadcast.priority.toUpperCase()}
                                             </span>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-lg sm:text-xl font-bold text-green-600">
+                                            <div className="text-lg font-bold text-green-600">
                                                 {formatCurrency(broadcast.fee)}
                                             </div>
                                             {broadcast.driverEarning && (
-                                                <div className="text-xs sm:text-sm text-blue-600 font-medium">
-                                                    Your Earning: {formatCurrency(broadcast.driverEarning)}
+                                                <div className="text-xs text-blue-600 font-medium">
+                                                    Your earning: {formatCurrency(broadcast.driverEarning)}
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Customer Info */}
-                                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                                        <div className="flex items-center space-x-2 mb-1">
-                                            <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                                            <span className="text-sm sm:text-base font-semibold text-gray-900">{broadcast.customerName}</span>
+                                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                        <div className="flex items-center space-x-3 mb-2">
+                                            <div className="bg-white border-2 border-gray-300 p-1 rounded-lg">
+                                                <UserIcon className="w-4 h-4 text-gray-600" />
+                                            </div>
+                                            <span className="text-sm font-semibold text-gray-900">{broadcast.customerName}</span>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <PhoneIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                                            <span className="text-xs sm:text-sm text-gray-600">{broadcast.customerPhone}</span>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="bg-white border-2 border-gray-300 p-1 rounded-lg">
+                                                <PhoneIcon className="w-4 h-4 text-gray-600" />
+                                            </div>
+                                            <span className="text-sm text-gray-700">{broadcast.customerPhone}</span>
                                         </div>
                                     </div>
 
                                     {/* Locations */}
-                                    <div className="space-y-2">
-                                        <div className="flex items-start space-x-2">
-                                            <div className="bg-green-100 p-1 sm:p-2 rounded-lg">
-                                                <MapPinIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-start space-x-3">
+                                            <div className="bg-white border-2 border-green-200 p-2 rounded-lg">
+                                                <MapPinIcon className="w-4 h-4 text-green-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Pickup</div>
-                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.pickupLocationDescription || broadcast.pickupLocation}</div>
+                                                <div className="text-sm font-semibold text-gray-900 mb-1">Pickup Location</div>
+                                                <div className="text-sm text-gray-700 leading-relaxed">
+                                                    {cleanLocationText(broadcast.pickupLocationDescription || broadcast.pickupLocation)}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-start space-x-2">
-                                            <div className="bg-red-100 p-1 sm:p-2 rounded-lg">
-                                                <MapPinIcon className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
+                                        <div className="flex items-start space-x-3">
+                                            <div className="bg-white border-2 border-blue-200 p-2 rounded-lg">
+                                                <MapPinIcon className="w-4 h-4 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Delivery</div>
-                                                <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">{broadcast.deliveryLocationDescription || broadcast.deliveryLocation}</div>
+                                                <div className="text-sm font-semibold text-gray-900 mb-1">Delivery Location</div>
+                                                <div className="text-sm text-gray-700 leading-relaxed">
+                                                    {cleanLocationText(broadcast.deliveryLocationDescription || broadcast.deliveryLocation)}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -959,20 +1006,12 @@ const BroadcastPage = () => {
                                     {/* Action Button */}
                                     <button
                                         onClick={() => acceptBroadcast(broadcast.id || broadcast._id || broadcast.deliveryId)}
-                                        // disabled={accepting === (broadcast.id || broadcast._id || broadcast.deliveryId)} // This state variable was removed
-                                        className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                                        className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                                     >
-                                        {/* {accepting === (broadcast.id || broadcast._id || broadcast.deliveryId) ? ( // This state variable was removed
-                                            <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                                Accepting...
-                                            </>
-                                        ) : ( */}
-                                        <>
-                                            <CheckCircleIcon className="w-4 h-4 mr-2" />
-                                            Accept Delivery
-                                        </>
-                                        {/* )} */}
+                                        <div className="bg-white border-2 border-white p-0.5 rounded-full mr-2">
+                                            <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        Accept Delivery
                                     </button>
                                 </div>
 

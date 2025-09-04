@@ -31,6 +31,67 @@ import { DashboardSkeleton } from '../../components/common/SkeletonLoader';
 const AdminDashboard = () => {
     const { formatCurrency } = useSystemSettings();
     const navigate = useNavigate();
+
+    // Helper function to format payment method for display
+    const formatPaymentMethod = (paymentMethod) => {
+        if (!paymentMethod) return 'Payment method not specified';
+
+        // Convert to lowercase for consistent comparison
+        const method = paymentMethod.toLowerCase().trim();
+
+        // Map common payment method values to user-friendly display names
+        const paymentMethodMap = {
+            'naira': 'Naira',
+            'naira_transfer': 'Naira Transfer',
+            'cash': 'Cash',
+            'card': 'Card',
+            'credit_card': 'Credit Card',
+            'debit_card': 'Debit Card',
+            'bank_transfer': 'Bank Transfer',
+            'isbank_transfer': 'İşbank Transfer',
+            'mobile_money': 'Mobile Money',
+            'paypal': 'PayPal',
+            'stripe': 'Stripe',
+            'paystack': 'Paystack',
+            'flutterwave': 'Flutterwave',
+            'online': 'Online Payment'
+        };
+
+        // Return mapped value or capitalize the original
+        return paymentMethodMap[method] || paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1);
+    };
+
+    // Helper function to get payment method icon
+    const getPaymentMethodIcon = (paymentMethod) => {
+        if (!paymentMethod) return null;
+
+        const method = paymentMethod.toLowerCase().trim();
+
+        // Map payment methods to appropriate icons
+        const iconMap = {
+            'naira': '₦',
+            'naira_transfer': '₦',
+            'cash': '💵',
+            'card': '💳',
+            'credit_card': '💳',
+            'debit_card': '💳',
+            'bank_transfer': '🏦',
+            'isbank_transfer': '🏦',
+            'mobile_money': '📱',
+            'paypal': '🔵',
+            'stripe': '💳',
+            'paystack': '🔴',
+            'flutterwave': '🟣',
+            'online': '🌐'
+        };
+
+        const icon = iconMap[method];
+        return icon ? (
+            <span className="text-sm" title={formatPaymentMethod(paymentMethod)}>
+                {icon}
+            </span>
+        ) : null;
+    };
     const [dashboardData, setDashboardData] = useState(null);
     const [recentDeliveries, setRecentDeliveries] = useState([]);
     const [topDrivers, setTopDrivers] = useState([]);
@@ -496,8 +557,9 @@ const AdminDashboard = () => {
                                                     </div>
                                                     <div className="text-right ml-2 flex-shrink-0">
                                                         <p className="text-xs font-bold text-gray-900">{formatCurrency(delivery.fee || delivery.amount)}</p>
-                                                        <p className="text-xs text-gray-500">
-                                                            {delivery.paymentMethod === 'cash' ? '💵 Cash' : '💳 Card'}
+                                                        <p className="text-xs text-gray-500 flex items-center justify-end space-x-1">
+                                                            {getPaymentMethodIcon(delivery.paymentMethod)}
+                                                            <span>{formatPaymentMethod(delivery.paymentMethod)}</span>
                                                         </p>
                                                         {delivery.createdAt && (
                                                             <p className="text-xs text-gray-400">

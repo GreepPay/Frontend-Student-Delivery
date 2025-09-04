@@ -460,10 +460,20 @@ const DriverProfilePage = () => {
     // Debug: Log when dropdown options change
     useEffect(() => {
         console.log('📋 Transportation methods updated:', transportationMethods);
+        console.log('📋 Transportation methods structure:', transportationMethods.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            type: typeof opt
+        })));
     }, [transportationMethods]);
 
     useEffect(() => {
         console.log('📋 Service areas updated:', serviceAreas);
+        console.log('📋 Service areas structure:', serviceAreas.map(opt => ({
+            value: opt.value,
+            label: opt.label,
+            type: typeof opt
+        })));
     }, [serviceAreas]);
 
 
@@ -1024,7 +1034,10 @@ const DriverProfilePage = () => {
                                                 label="Transportation Method"
                                                 options={transportationMethods}
                                                 value={formData.transportationMethod}
-                                                onChange={(value) => setFormData(prev => ({ ...prev, transportationMethod: value }))}
+                                                onChange={(value) => {
+                                                    console.log('🔍 ProfilePage: Transportation method changed to:', value);
+                                                    setFormData(prev => ({ ...prev, transportationMethod: value }));
+                                                }}
                                                 placeholder="Select Transportation Method"
                                                 searchPlaceholder="Search transportation methods..."
                                                 loading={false}
@@ -1053,7 +1066,10 @@ const DriverProfilePage = () => {
                                                 label="Service Area"
                                                 options={serviceAreas}
                                                 value={formData.transportationArea}
-                                                onChange={(value) => setFormData(prev => ({ ...prev, transportationArea: value }))}
+                                                onChange={(value) => {
+                                                    console.log('🔍 ProfilePage: Service area changed to:', value);
+                                                    setFormData(prev => ({ ...prev, transportationArea: value }));
+                                                }}
                                                 placeholder="Select Service Area"
                                                 searchPlaceholder="Search service areas..."
                                                 loading={false}

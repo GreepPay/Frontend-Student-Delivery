@@ -652,10 +652,21 @@ class ApiService {
         return response.data;
     }
 
-    async calculateDriverEarnings() {
+    async calculateDriverEarnings(deliveryData = null) {
         try {
-            console.log('💰 API Service: Triggering earnings calculation...');
-            const response = await api.post('/driver/earnings/calculate');
+            console.log('💰 API Service: Triggering earnings calculation...', { deliveryData });
+
+            // Prepare request body with delivery data if provided
+            const requestBody = deliveryData ? {
+                deliveryId: deliveryData._id || deliveryData.id,
+                deliveryCode: deliveryData.deliveryCode,
+                amount: deliveryData.amount || deliveryData.paymentAmount,
+                distance: deliveryData.distance,
+                completedAt: new Date().toISOString()
+            } : {};
+
+            console.log('📤 Sending request body:', requestBody);
+            const response = await api.post('/driver/earnings/calculate', requestBody);
             console.log('✅ API Service: Earnings calculation response:', response.data);
             return response.data;
         } catch (error) {

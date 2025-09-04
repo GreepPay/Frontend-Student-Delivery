@@ -108,7 +108,7 @@ const MyDeliveries = () => {
         setRefreshing(true);
         await loadDeliveries();
         setRefreshing(false);
-        toast.success('Deliveries refreshed!');
+        // Deliveries refreshed silently
     };
 
     // Status helpers
@@ -284,8 +284,14 @@ const MyDeliveries = () => {
                 // Trigger earnings calculation after delivery completion
                 try {
                     console.log('💰 MyDeliveries: Triggering earnings calculation...');
-                    await apiService.calculateDriverEarnings();
-                    console.log('✅ MyDeliveries: Earnings calculation triggered successfully');
+                    // Find the delivery object to pass to earnings calculation
+                    const delivery = deliveries.find(d => d.id === deliveryId);
+                    if (delivery) {
+                        await apiService.calculateDriverEarnings(delivery);
+                        console.log('✅ MyDeliveries: Earnings calculation triggered successfully');
+                    } else {
+                        console.warn('⚠️ MyDeliveries: Could not find delivery for earnings calculation');
+                    }
                 } catch (earningsError) {
                     console.warn('⚠️ MyDeliveries: Earnings calculation failed, but delivery was completed:', earningsError);
                     // Don't show error to user since delivery was successful
@@ -306,7 +312,7 @@ const MyDeliveries = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        toast.success('Copied to clipboard!');
+        // Copied silently
     };
 
     // Calculate distance between two coordinates using Haversine formula
@@ -1044,10 +1050,20 @@ const MyDeliveries = () => {
                     </p>
                     <button
                         onClick={refreshDeliveries}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        disabled={refreshing}
+                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <ArrowPathIcon className="w-4 h-4 mr-2" />
-                        Refresh Deliveries
+                        {refreshing ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Refreshing...
+                            </>
+                        ) : (
+                            <>
+                                <ArrowPathIcon className="w-4 h-4 mr-2" />
+                                Refresh Deliveries
+                            </>
+                        )}
                     </button>
                 </div>
             )}

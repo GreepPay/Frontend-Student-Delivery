@@ -1,17 +1,18 @@
 import React from 'react';
-import { XMarkIcon, TruckIcon, UserIcon, PhoneIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
-import { mapsUtils } from '../../utils/formMemory';
+import { XMarkIcon, TruckIcon, UserIcon, PhoneIcon } from '@heroicons/react/24/outline';
+//import { mapsUtils } from '../../utils/formMemory';
 
 const DeliveryDetailsModal = ({
+    delivery,
     isOpen,
     onClose,
-    delivery,
-    showActions = true,
-    onEdit,
-    onDelete,
+    showActions = false,
     onAccept,
     onStart,
-    onComplete
+    onComplete,
+    onEdit,
+    onDelete,
+    drivers = [] // Add drivers prop for fallback driver lookup
 }) => {
     if (!isOpen || !delivery) return null;
 
@@ -37,6 +38,67 @@ const DeliveryDetailsModal = ({
             'urgent': 'bg-red-100 text-red-800'
         };
         return colors[priority] || 'bg-gray-100 text-gray-800';
+    };
+
+    // Helper function to format payment method for display
+    const formatPaymentMethod = (paymentMethod) => {
+        if (!paymentMethod) return 'Payment method not specified';
+
+        // Convert to lowercase for consistent comparison
+        const method = paymentMethod.toLowerCase().trim();
+
+        // Map common payment method values to user-friendly display names
+        const paymentMethodMap = {
+            'naira': 'Naira',
+            'naira_transfer': 'Naira Transfer',
+            'cash': 'Cash',
+            'card': 'Card',
+            'credit_card': 'Credit Card',
+            'debit_card': 'Debit Card',
+            'bank_transfer': 'Bank Transfer',
+            'isbank_transfer': 'İşbank Transfer',
+            'mobile_money': 'Mobile Money',
+            'paypal': 'PayPal',
+            'stripe': 'Stripe',
+            'paystack': 'Paystack',
+            'flutterwave': 'Flutterwave',
+            'online': 'Online Payment'
+        };
+
+        // Return mapped value or capitalize the original
+        return paymentMethodMap[method] || paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1);
+    };
+
+    // Helper function to get payment method icon
+    const getPaymentMethodIcon = (paymentMethod) => {
+        if (!paymentMethod) return null;
+
+        const method = paymentMethod.toLowerCase().trim();
+
+        // Map payment methods to appropriate icons
+        const iconMap = {
+            'naira': '₦',
+            'naira_transfer': '₦',
+            'cash': '💵',
+            'card': '💳',
+            'credit_card': '💳',
+            'debit_card': '💳',
+            'bank_transfer': '🏦',
+            'isbank_transfer': '🏦',
+            'mobile_money': '📱',
+            'paypal': '🔵',
+            'stripe': '💳',
+            'paystack': '🔴',
+            'flutterwave': '🟣',
+            'online': '🌐'
+        };
+
+        const icon = iconMap[method];
+        return icon ? (
+            <span className="text-sm" title={formatPaymentMethod(paymentMethod)}>
+                {icon}
+            </span>
+        ) : null;
     };
 
     return (
@@ -83,7 +145,14 @@ const DeliveryDetailsModal = ({
                             </div>
                             <div className="text-right">
                                 <div className="text-xl font-bold text-green-600">₺{delivery.fee}</div>
-                                <div className="text-xs text-gray-500">{delivery.paymentMethod}</div>
+                                <div className="text-xs text-gray-500 flex items-center justify-end space-x-1">
+                                    {getPaymentMethodIcon(delivery.paymentMethod)}
+                                    <span>{formatPaymentMethod(delivery.paymentMethod)}</span>
+                                </div>
+                                {/* Debug info - remove this after fixing */}
+                                <div className="text-xs text-gray-400 mt-1">
+                                    Raw: {delivery.paymentMethod}
+                                </div>
                             </div>
                         </div>
 
@@ -115,21 +184,50 @@ const DeliveryDetailsModal = ({
                                     </div>
                                     <button
                                         onClick={() => {
-                                            // Try to extract coordinates from pickupLocationLink first
+                                            // Use the same robust URL formatting logic as NotificationsPage
+                                            console.log('🔍 Pickup location link:', delivery.pickupLocationLink);
+
+                                            let navigationUrl = null;
+
                                             if (delivery.pickupLocationLink) {
-                                                const navUrl = mapsUtils.extractAndCreateNavigationLink(
-                                                    delivery.pickupLocationLink,
-                                                    delivery.pickupLocationDescription || 'Pickup Location'
+                                                // Replace malformed URLs with proper Google Maps routing URLs
+                                                let formattedUrl = delivery.pickupLocationLink.replace(
+                                                    /https:\/\/maps\.google\.com\/\?q=([^,\s]+),([^,\s]+)/g,
+                                                    (match, lat, lng) => {
+                                                        return `https://www.google.com/maps/dir/My+Location/${lat},${lng}`;
+                                                    }
                                                 );
-                                                if (navUrl) {
-                                                    window.open(navUrl, '_blank');
-                                                    return;
+
+                                                // Also replace static coordinate URLs with routing URLs
+                                                formattedUrl = formattedUrl.replace(
+                                                    /https:\/\/www\.google\.com\/maps\/@([^,\s]+),([^,\s]+),(\d+)z/g,
+                                                    (match, lat, lng, zoom) => {
+                                                        return `https://www.google.com/maps/dir/My+Location/${lat},${lng}`;
+                                                    }
+                                                );
+
+                                                // If it's already a navigation URL, use it directly
+                                                if (formattedUrl.includes('/maps/dir/')) {
+                                                    navigationUrl = formattedUrl;
+                                                } else {
+                                                    // Try to extract coordinates from any remaining format
+                                                    const coordMatch = formattedUrl.match(/(\d+\.\d+),(\d+\.\d+)/);
+                                                    if (coordMatch) {
+                                                        navigationUrl = `https://www.google.com/maps/dir/My+Location/${coordMatch[1]},${coordMatch[2]}`;
+                                                    }
                                                 }
                                             }
 
-                                            // Fallback to search
-                                            const searchUrl = mapsUtils.generateSearchLink(delivery.pickupLocationDescription || delivery.pickupLocation);
-                                            window.open(searchUrl, '_blank');
+                                            if (navigationUrl) {
+                                                console.log('✅ Navigation URL generated:', navigationUrl);
+                                                window.open(navigationUrl, '_blank');
+                                            } else {
+                                                // Fallback to search by location description
+                                                console.log('📍 No coordinates found, using search fallback');
+                                                const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(delivery.pickupLocationDescription || delivery.pickupLocation || '')}`;
+                                                console.log('🔍 Search URL:', searchUrl);
+                                                window.open(searchUrl, '_blank');
+                                            }
                                         }}
                                         className="text-xs text-blue-600 hover:text-blue-800 font-medium bg-blue-100 px-2 py-1 rounded-md"
                                     >
@@ -148,21 +246,50 @@ const DeliveryDetailsModal = ({
                                     </div>
                                     <button
                                         onClick={() => {
-                                            // Try to extract coordinates from deliveryLocationLink first
+                                            // Use the same robust URL formatting logic as NotificationsPage
+                                            console.log('🔍 Delivery location link:', delivery.deliveryLocationLink);
+
+                                            let navigationUrl = null;
+
                                             if (delivery.deliveryLocationLink) {
-                                                const navUrl = mapsUtils.extractAndCreateNavigationLink(
-                                                    delivery.deliveryLocationLink,
-                                                    delivery.deliveryLocationDescription || 'Delivery Location'
+                                                // Replace malformed URLs with proper Google Maps routing URLs
+                                                let formattedUrl = delivery.deliveryLocationLink.replace(
+                                                    /https:\/\/maps\.google\.com\/\?q=([^,\s]+),([^,\s]+)/g,
+                                                    (match, lat, lng) => {
+                                                        return `https://www.google.com/maps/dir/My+Location/${lat},${lng}`;
+                                                    }
                                                 );
-                                                if (navUrl) {
-                                                    window.open(navUrl, '_blank');
-                                                    return;
+
+                                                // Also replace static coordinate URLs with routing URLs
+                                                formattedUrl = formattedUrl.replace(
+                                                    /https:\/\/www\.google\.com\/maps\/@([^,\s]+),([^,\s]+),(\d+)z/g,
+                                                    (match, lat, lng, zoom) => {
+                                                        return `https://www.google.com/maps/dir/My+Location/${lat},${lng}`;
+                                                    }
+                                                );
+
+                                                // If it's already a navigation URL, use it directly
+                                                if (formattedUrl.includes('/maps/dir/')) {
+                                                    navigationUrl = formattedUrl;
+                                                } else {
+                                                    // Try to extract coordinates from any remaining format
+                                                    const coordMatch = formattedUrl.match(/(\d+\.\d+),(\d+\.\d+)/);
+                                                    if (coordMatch) {
+                                                        navigationUrl = `https://www.google.com/maps/dir/My+Location/${coordMatch[1]},${coordMatch[2]}`;
+                                                    }
                                                 }
                                             }
 
-                                            // Fallback to search
-                                            const searchUrl = mapsUtils.generateSearchLink(delivery.deliveryLocationDescription || delivery.deliveryLocation);
-                                            window.open(searchUrl, '_blank');
+                                            if (navigationUrl) {
+                                                console.log('✅ Navigation URL generated:', navigationUrl);
+                                                window.open(navigationUrl, '_blank');
+                                            } else {
+                                                // Fallback to search by location description
+                                                console.log('📍 No coordinates found, using search fallback');
+                                                const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(delivery.deliveryLocationDescription || delivery.deliveryLocation || '')}`;
+                                                console.log('🔍 Search URL:', searchUrl);
+                                                window.open(searchUrl, '_blank');
+                                            }
                                         }}
                                         className="text-xs text-green-600 hover:text-green-800 font-medium bg-green-100 px-2 py-1 rounded-md"
                                     >
@@ -180,7 +307,25 @@ const DeliveryDetailsModal = ({
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-600">Assigned To:</span>
                                     <span className="text-sm font-medium text-gray-900">
-                                        {delivery.assignedTo ? 'Assigned' : 'Unassigned'}
+                                        {delivery.assignedTo ? (
+                                            (() => {
+                                                // assignedTo is already an object with driver info
+                                                if (typeof delivery.assignedTo === 'object' && delivery.assignedTo !== null) {
+                                                    // Access driver properties directly
+                                                    const driverName = delivery.assignedTo.name ||
+                                                        delivery.assignedTo.fullName ||
+                                                        delivery.assignedTo.fullNameComputed ||
+                                                        'Unknown Driver';
+                                                    return driverName;
+                                                } else {
+                                                    // Fallback: try to find driver by ID
+                                                    const assignedDriver = drivers.find(driver =>
+                                                        driver._id === delivery.assignedTo || driver.id === delivery.assignedTo
+                                                    );
+                                                    return assignedDriver ? assignedDriver.name : 'Unknown Driver';
+                                                }
+                                            })()
+                                        ) : 'Unassigned'}
                                     </span>
                                 </div>
                                 {delivery.estimatedTime && (
