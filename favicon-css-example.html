@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSS Rounded Favicon Example</title>
+    <style>
+      /* This shows how you could style a favicon if it were an img element */
+      .rounded-favicon {
+        border-radius: 50%; /* Makes it circular */
+        /* border-radius: 20%; /* Makes it slightly rounded */
+        /* border-radius: 30%; /* Makes it moderately rounded */
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      .example {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSS Rounded Favicon Examples</h1>
+
+    <div class="example">
+      <h3>Note:</h3>
+      <p>
+        The <code>&lt;link rel="icon"&gt;</code> tag cannot be styled with CSS
+        because it's not a visual element. To get rounded edges on your favicon,
+        you need to create a rounded version of the image file itself.
+      </p>
+    </div>
+
+    <div class="example">
+      <h3>If your favicon were an img element, you could use:</h3>
+      <pre><code>img {
+    border-radius: 50%; /* Circular */
+    /* or */
+    border-radius: 20%; /* Slightly rounded */
+    /* or */
+    border-radius: 30%; /* Moderately rounded */
+}</code></pre>
+    </div>
+
+    <div class="example">
+      <h3>Example of rounded images:</h3>
+      <img
+        src="/icons/White.png"
+        alt="Original"
+        style="width: 64px; height: 64px; margin: 10px"
+      />
+      <img
+        src="/icons/White.png"
+        alt="Slightly Rounded"
+        style="width: 64px; height: 64px; border-radius: 20%; margin: 10px"
+      />
+      <img
+        src="/icons/White.png"
+        alt="Moderately Rounded"
+        style="width: 64px; height: 64px; border-radius: 30%; margin: 10px"
+      />
+      <img
+        src="/icons/White.png"
+        alt="Fully Rounded"
+        style="width: 64px; height: 64px; border-radius: 50%; margin: 10px"
+      />
+    </div>
+
+    <p>
+      <strong
+        >Use the rounded favicon generator tool to create the actual rounded
+        image file.</strong
+      >
+    </p>
+  </body>
+</html>

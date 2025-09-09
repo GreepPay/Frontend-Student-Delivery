@@ -3,9 +3,9 @@
   "short_name": "Greep SDS",
   "description": "Student Delivery Service - Connect students with delivery opportunities",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#ffffff",
-  "theme_color": "#0a84ff",
+  "theme_color": "#ffffff",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
@@ -94,7 +94,7 @@
       "url": "/admin",
       "icons": [
         {
-          "src": "/icons/icon-96x96.png",
+          "src": "/icons/White.png",
           "sizes": "96x96"
         }
       ]
@@ -106,12 +106,18 @@
       "url": "/driver/broadcast",
       "icons": [
         {
-          "src": "/icons/icon-96x96.png",
+          "src": "/icons/White.png",
           "sizes": "96x96"
         }
       ]
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }

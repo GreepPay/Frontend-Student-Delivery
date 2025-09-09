@@ -466,7 +466,7 @@ const DashboardContent = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hidden md:block">
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <button
                             onClick={() => navigate('/driver/deliveries')}

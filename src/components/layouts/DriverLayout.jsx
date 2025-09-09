@@ -390,7 +390,7 @@ const DriverLayout = ({ children }) => {
 
                     {/* PWA Status (for development/debugging) */}
                     {process.env.NODE_ENV === 'development' && (
-                        <div className="fixed top-4 left-4 z-50">
+                        <div className="fixed bottom-4 left-4 z-50">
                             <PWAStatus showDetails={false} />
                         </div>
                     )}

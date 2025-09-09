@@ -51,3 +51,4 @@ export const getOptimizedInterval = (defaultInterval, type) => {
     return defaultInterval;
 };
 
+
