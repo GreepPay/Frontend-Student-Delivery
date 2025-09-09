@@ -79,7 +79,7 @@ const ProfilePage = () => {
         return (
             <div className="w-24 h-24 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center overflow-hidden">
                 <img
-                    src="/White.png"
+                    src="/icons/White.png"
                     alt="Admin Profile"
                     className="w-full h-full object-cover"
                 />
