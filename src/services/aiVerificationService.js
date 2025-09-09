@@ -235,22 +235,11 @@ export const AIVerificationRules = {
         fraudIndicators: ['multiple_faces', 'screenshot_detected', 'low_quality']
     },
 
-    // University Enrollment validation rules
-    universityEnrollment: {
-        requiredFields: ['university_name', 'student_name', 'enrollment_date', 'course_program'],
+    // Passport Photo validation rules
+    passportPhoto: {
+        requiredFields: ['full_name', 'date_of_birth', 'passport_number', 'expiry_date'],
         textPatterns: {
-            enrollmentDate: /^\d{2}\/\d{2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/,
-            courseProgram: /bachelor|master|phd|diploma/i
-        },
-        confidenceThreshold: 0.9,
-        fraudIndicators: ['forged_signatures', 'inconsistent_dates', 'template_detected']
-    },
-
-    // Identity Card validation rules
-    identityCard: {
-        requiredFields: ['full_name', 'date_of_birth', 'national_id', 'expiry_date'],
-        textPatterns: {
-            nationalId: /^\d{10,12}$/,
+            passportNumber: /^[A-Z]{1,2}\d{6,9}$/,
             dateOfBirth: /^\d{2}\/\d{2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/,
             expiryDate: /^\d{2}\/\d{2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/
         },

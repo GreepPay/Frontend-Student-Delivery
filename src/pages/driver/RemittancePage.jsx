@@ -51,7 +51,8 @@ const RemittancePage = () => {
             const response = await apiService.getDriverRemittances();
 
             if (response.success && response.data) {
-                setRemittances(response.data.remittances || []);
+                const remittancesData = response.data.remittances || [];
+                setRemittances(remittancesData);
                 setSummary(response.data.summary || {
                     totalEarnings: 0,
                     availableBalance: 0,
@@ -60,6 +61,11 @@ const RemittancePage = () => {
                     lastPayout: null
                 });
                 console.log('✅ Remittances loaded from API:', response.data);
+                console.log('📊 Remittances data structure:', remittancesData.map(r => ({
+                    reference: r.referenceNumber || r.reference,
+                    status: r.status,
+                    amount: r.amount
+                })));
             } else {
                 console.error('Remittances API response invalid:', response);
                 toast.error('Failed to load remittances data');
@@ -200,7 +206,25 @@ const RemittancePage = () => {
 
     // Filter remittances
     const filteredRemittances = remittances.filter(remittance => {
-        return !filters.status || remittance.status === filters.status;
+        if (!filters.status) {
+            return true; // Show all if no filter selected
+        }
+
+        // Normalize status values for comparison
+        const remittanceStatus = (remittance.status || '').toLowerCase().trim();
+        const filterStatus = (filters.status || '').toLowerCase().trim();
+
+        const matches = remittanceStatus === filterStatus;
+
+        console.log('🔍 Filtering remittance:', {
+            reference: remittance.referenceNumber || remittance.reference,
+            originalStatus: remittance.status,
+            normalizedStatus: remittanceStatus,
+            filterStatus: filterStatus,
+            matches: matches
+        });
+
+        return matches;
     });
 
     // Pagination

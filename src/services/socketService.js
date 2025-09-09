@@ -11,9 +11,17 @@ class SocketService {
     }
 
     connect(userId, userType) {
+        // Prevent multiple connections
+        if (this.socket && this.connected) {
+            console.log('🔌 SocketService: Already connected, skipping connection');
+            return;
+        }
+
         try {
             // Connect to Socket.IO server
-            this.socket = io(process.env.REACT_APP_SOCKET_URL, {
+            const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
+            console.log('🔌 SocketService: Connecting to:', socketUrl);
+            this.socket = io(socketUrl, {
                 auth: {
                     userId,
                     userType
@@ -105,6 +113,15 @@ class SocketService {
         this.socket.on('authentication-confirmed', (data) => {
             console.log('✅ Socket authentication confirmed:', data);
             this.authenticated = true;
+
+            // Join admin room after authentication (only if not already in admin room)
+            if ((data.userType === 'admin' || data.role === 'admin' || data.role === 'super_admin') &&
+                (!data.rooms || !data.rooms.includes('admin'))) {
+                console.log('🔌 Joining admin room...');
+                this.socket.emit('join-admin-room');
+            } else if (data.rooms && data.rooms.includes('admin')) {
+                console.log('🔌 Already in admin room, skipping join');
+            }
         });
 
         // Listen for authentication failure
@@ -115,7 +132,28 @@ class SocketService {
 
         // Listen for real-time notifications
         this.socket.on('new-notification', (notification) => {
-            console.log('📱 New notification received:', notification);
+            // Check if this is a driver message that should go to messaging system
+            const isDriverMessage = (
+                notification.type === 'driver-message' ||
+                notification.type === 'message' ||
+                notification.senderType === 'driver' ||
+                notification.message?.includes('Message from') ||
+                notification.title?.includes('Message from') ||
+                notification.message?.includes('💬') ||
+                notification.message?.toLowerCase().includes('how low can you go') ||
+                notification.message?.toLowerCase().includes('are you sur') ||
+                notification.message?.toLowerCase().includes('hello') ||
+                notification.message?.toLowerCase().includes('hey') ||
+                notification.message?.toLowerCase().includes('test message')
+            );
+
+            if (isDriverMessage) {
+                console.log('📱 Driver message notification - routing to messaging system:', notification);
+                // Add a flag to indicate this should go to messaging
+                notification._routeToMessaging = true;
+            } else {
+                console.log('📱 New notification received:', notification);
+            }
         });
 
         // Listen for delivery broadcasts
@@ -125,6 +163,17 @@ class SocketService {
 
         // Listen for toast notifications
         this.socket.on('toast-notification', (toast) => {
+            // Skip driver message toasts - they should go to messaging system, not notifications
+            if (toast.toastType === 'driver-message' ||
+                toast.toastMessage?.includes('Message from') ||
+                toast.toastMessage?.toLowerCase().includes('how low can you go') ||
+                toast.toastMessage?.toLowerCase().includes('are you sur') ||
+                toast.toastMessage?.toLowerCase().includes('hello') ||
+                toast.toastMessage?.toLowerCase().includes('hey') ||
+                toast.toastMessage?.toLowerCase().includes('test message')) {
+                console.log('🍞 Skipping driver message toast:', toast);
+                return;
+            }
             console.log('🍞 Toast notification received:', toast);
         });
 
@@ -186,6 +235,16 @@ class SocketService {
     // Check if socket is authenticated
     isAuthenticated() {
         return this.authenticated && this.connected && this.socket?.connected;
+    }
+
+    // Join admin room manually
+    joinAdminRoom() {
+        if (this.socket && this.connected) {
+            console.log('🔌 Manually joining admin room...');
+            this.socket.emit('join-admin-room');
+        } else {
+            console.warn('🔌 Cannot join admin room - socket not connected');
+        }
     }
 
     emit(event, data) {

@@ -21,7 +21,6 @@ import {
     SparklesIcon,
     XMarkIcon,
     IdentificationIcon,
-    AcademicCapIcon,
     PhotoIcon,
 } from '@heroicons/react/24/outline';
 
@@ -46,16 +45,14 @@ const DocumentVerificationPage = () => {
     const documentIcons = {
         studentId: IdentificationIcon,
         profilePhoto: PhotoIcon,
-        universityEnrollment: AcademicCapIcon,
-        identityCard: IdentificationIcon
+        passportPhoto: IdentificationIcon
     };
 
     // Document type labels
     const documentLabels = {
         studentId: 'Student ID',
         profilePhoto: 'Profile Photo',
-        universityEnrollment: 'University Enrollment',
-        identityCard: 'Identity Card'
+        passportPhoto: 'Passport Photo'
     };
 
     const loadDocuments = useCallback(async () => {
@@ -353,8 +350,8 @@ const DocumentVerificationPage = () => {
         const canVerify = hasFileOrUploadTimestamp && document.status === 'pending';
 
         // Debug logging for document status
-        if (document.documentType === 'universityEnrollment') {
-            console.log('🔍 DocumentVerificationPage: University Enrollment document status check:', {
+        if (document.documentType === 'passportPhoto') {
+            console.log('🔍 DocumentVerificationPage: Passport Photo document status check:', {
                 documentType: document.documentType,
                 fileUrl: document.fileUrl,
                 documentUrl: document.documentUrl,
@@ -483,7 +480,6 @@ const DocumentVerificationPage = () => {
                                 const Icon = documentIcons[document.documentType] || DocumentMagnifyingGlassIcon;
                                 const statusInfo = getStatusInfo(document.status);
                                 const StatusIcon = statusInfo.icon;
-                                const docStatus = getDocumentStatus(document);
 
                                 return (
                                     <div key={document._id || document.id || `document-${index}`} className="p-4 hover:bg-gray-50 transition-colors">

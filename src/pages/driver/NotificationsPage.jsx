@@ -34,8 +34,85 @@ const NotificationsPage = () => {
     const [markingAsRead, setMarkingAsRead] = useState(new Set());
     const itemsPerPage = 10;
 
+    const fetchNotifications = useCallback(async (silent = false) => {
+        try {
+            console.log('🔔 DriverNotificationsPage: fetchNotifications called - silent:', silent, 'currentPage:', currentPage, 'filter:', filter);
+            if (!silent) setLoading(true);
+
+            // Map frontend filter values to backend notification types
+            const typeMapping = {
+                'all': undefined,
+                'delivery': 'delivery_assigned',
+                'payment': 'payment_received',
+                'earnings': 'earnings_updated',
+                'account': 'account_updated',
+                'document': 'document_verified'
+            };
+
+            const mappedType = typeMapping[filter];
+
+            console.log('🔔 DriverNotificationsPage: Fetching notifications with params:', {
+                page: currentPage,
+                limit: itemsPerPage,
+                type: mappedType
+            });
+
+            const response = await apiService.getDriverNotifications({
+                page: currentPage,
+                limit: itemsPerPage,
+                type: mappedType
+            });
+
+            console.log('🔔 DriverNotificationsPage: API response:', response);
+
+            if (response && response.success) {
+                const notificationsData = response.data?.notifications || response.data || [];
+                const notificationsArray = Array.isArray(notificationsData) ? notificationsData : [];
+
+                console.log('🔔 DriverNotificationsPage: Setting notifications:', notificationsArray.length);
+                console.log('🔔 DriverNotificationsPage: Sample notification structure:', notificationsArray[0]);
+                console.log('🔔 DriverNotificationsPage: All notification IDs:', notificationsArray.map(n => ({ id: n._id, type: typeof n._id, length: n._id?.length })));
+
+                setNotifications(notificationsArray);
+                setTotalPages(response.data?.totalPages || 1);
+                setTotalItems(response.data?.totalItems || notificationsArray.length);
+            } else {
+                console.warn('🔔 DriverNotificationsPage: API returned unsuccessful response:', response);
+                if (!silent) {
+                    toast.error('Failed to load notifications. Please try again.');
+                }
+                setNotifications([]);
+            }
+        } catch (error) {
+            console.error('❌ DriverNotificationsPage: Error fetching notifications:', error);
+            if (!silent) {
+                toast.error('Failed to load notifications. Please check your connection.');
+            }
+            setNotifications([]);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }, [currentPage, filter, itemsPerPage]);
+
+    const fetchUnreadCount = useCallback(async (silent = false) => {
+        try {
+            console.log('🔔 DriverNotificationsPage: fetchUnreadCount called - silent:', silent);
+            const response = await apiService.getDriverUnreadNotificationsCount();
+
+            if (response.success) {
+                setUnreadCount(response.data.unreadCount || 0);
+            } else {
+                // Fallback to 0 if API fails
+                setUnreadCount(0);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+            setUnreadCount(0);
+        }
+    }, []);
+
     useEffect(() => {
-        console.log('🔔 DriverNotificationsPage: Filter changed to:', filter);
+        console.log('🔔 DriverNotificationsPage: useEffect triggered - currentPage:', currentPage, 'filter:', filter);
         fetchNotifications();
         fetchUnreadCount();
     }, [currentPage, filter]);
@@ -56,7 +133,7 @@ const NotificationsPage = () => {
             setIsConnected(socketService.isConnected());
         };
         checkConnection();
-        const connectionInterval = setInterval(checkConnection, 5000);
+        const connectionInterval = setInterval(checkConnection, 30000); // Reduced from 5s to 30s
 
         // Listen for new notifications
         socketService.on('new-notification', (data) => {
@@ -105,6 +182,7 @@ const NotificationsPage = () => {
 
         // Listen for admin messages
         socketService.on('admin-message', (data) => {
+            console.log('💬 DriverNotificationsPage: ===== ADMIN MESSAGE RECEIVED =====');
             console.log('💬 DriverNotificationsPage: Received admin message:', data);
 
             // Play notification sound
@@ -213,6 +291,28 @@ const NotificationsPage = () => {
             setUnreadCount(prev => prev + 1);
         });
 
+        // Listen for delivery broadcasts
+        socketService.on('delivery-broadcast', (data) => {
+            console.log('📡 DriverNotificationsPage: Received delivery broadcast:', data);
+
+            // Play delivery sound
+            soundService.playSound('delivery');
+
+            const broadcastNotification = {
+                _id: data.deliveryId || Date.now().toString(),
+                title: 'New Delivery Available',
+                message: `New delivery from ${data.pickupLocationDescription || data.pickupLocation} to ${data.deliveryLocationDescription || data.deliveryLocation} - ₺${data.fee || 'Unknown'}`,
+                type: 'delivery_broadcast',
+                priority: 'high',
+                isRead: false,
+                createdAt: data.createdAt || new Date().toISOString(),
+                metadata: data
+            };
+
+            setNotifications(prev => [broadcastNotification, ...prev.slice(0, -1)]);
+            setUnreadCount(prev => prev + 1);
+        });
+
         return () => {
             clearInterval(connectionInterval);
             socketService.off('new-notification');
@@ -223,6 +323,7 @@ const NotificationsPage = () => {
             socketService.off('delivery-status-changed');
             socketService.off('payment-received');
             socketService.off('earnings-updated');
+            socketService.off('delivery-broadcast');
         };
     }, [user]);
 
@@ -235,83 +336,6 @@ const NotificationsPage = () => {
 
     //     return () => clearInterval(refreshInterval);
     // }, [currentPage, filter]);
-
-    const fetchNotifications = useCallback(async (silent = false) => {
-        try {
-            if (!silent) setLoading(true);
-
-            // Map frontend filter values to backend notification types
-            const typeMapping = {
-                'all': undefined,
-                'delivery': 'delivery_assigned',
-                'payment': 'payment_received',
-                'earnings': 'earnings_updated',
-                'account': 'account_updated',
-                'document': 'document_verified'
-            };
-
-            const mappedType = typeMapping[filter];
-
-            console.log('🔔 DriverNotificationsPage: Fetching notifications with params:', {
-                page: currentPage,
-                limit: itemsPerPage,
-                type: mappedType
-            });
-
-            const response = await apiService.getDriverNotifications({
-                page: currentPage,
-                limit: itemsPerPage,
-                type: mappedType
-            });
-
-            console.log('🔔 DriverNotificationsPage: API response:', response);
-
-            if (response && response.success) {
-                const notificationsData = response.data?.notifications || response.data || [];
-                const notificationsArray = Array.isArray(notificationsData) ? notificationsData : [];
-
-                console.log('🔔 DriverNotificationsPage: Setting notifications:', notificationsArray.length);
-                console.log('🔔 DriverNotificationsPage: Sample notification structure:', notificationsArray[0]);
-                console.log('🔔 DriverNotificationsPage: All notification IDs:', notificationsArray.map(n => ({ id: n._id, type: typeof n._id, length: n._id?.length })));
-
-                setNotifications(notificationsArray);
-                setTotalPages(response.data?.totalPages || 1);
-                setTotalItems(response.data?.totalItems || notificationsArray.length);
-            } else {
-                console.warn('🔔 DriverNotificationsPage: API returned unsuccessful response:', response);
-                if (!silent) {
-                    toast.error('Failed to load notifications. Please try again.');
-                }
-                setNotifications([]);
-            }
-        } catch (error) {
-            console.error('❌ DriverNotificationsPage: Error fetching notifications:', error);
-            if (!silent) {
-                toast.error('Failed to load notifications. Please check your connection.');
-            }
-            setNotifications([]);
-        } finally {
-            if (!silent) setLoading(false);
-        }
-    }, [currentPage, filter, itemsPerPage]);
-
-    // Mock data function removed - using real API data now
-
-    const fetchUnreadCount = useCallback(async (silent = false) => {
-        try {
-            const response = await apiService.getDriverUnreadNotificationsCount();
-
-            if (response.success) {
-                setUnreadCount(response.data.unreadCount || 0);
-            } else {
-                // Fallback to mock count
-                setUnreadCount(notifications.filter(n => !n.isRead).length);
-            }
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-            setUnreadCount(notifications.filter(n => !n.isRead).length);
-        }
-    }, [notifications]);
 
     const markAsRead = async (notificationId) => {
         try {

@@ -116,6 +116,7 @@ const NotificationsDropdown = () => {
 
         // Listen for admin messages
         socketService.on('admin-message', (data) => {
+            console.log('💬 NotificationsDropdown: ===== ADMIN MESSAGE RECEIVED =====');
             console.log('💬 NotificationsDropdown: Received admin message via WebSocket:', data);
 
             // Play notification sound

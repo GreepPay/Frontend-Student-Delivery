@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Greep SDS</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0a84ff 0%,
+          #667eea 50%,
+          #764ba2 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Animated background elements */
+      body::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 1px,
+          transparent 1px
+        );
+        background-size: 50px 50px;
+        animation: float 20s infinite linear;
+        pointer-events: none;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50px, -50px) rotate(360deg);
+        }
+      }
+
+      .offline-container {
+        text-align: center;
+        max-width: 600px;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 24px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        z-index: 1;
+        animation: slideIn 0.8s ease-out;
+      }
+
+      /* Fallback for browsers that don't support backdrop-filter */
+      @supports not (backdrop-filter: blur(20px)) {
+        .offline-container {
+          background: rgba(255, 255, 255, 0.25);
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .offline-icon {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 2rem;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.3),
+          rgba(255, 255, 255, 0.1)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        animation: pulse 2s infinite;
+        position: relative;
+      }
+
+      .offline-icon::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        animation: rotate 3s linear infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+        background: linear-gradient(45deg, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .subtitle {
+        font-size: 1.4rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+        font-weight: 500;
+      }
+
+      .message {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        opacity: 0.9;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .retry-button {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.25),
+          rgba(255, 255, 255, 0.15)
+        );
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        color: white;
+        padding: 1.2rem 2.5rem;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-block;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .retry-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .retry-button:hover::before {
+        left: 100%;
+      }
+
+      .retry-button:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.35),
+          rgba(255, 255, 255, 0.25)
+        );
+        border-color: rgba(255, 255, 255, 0.6);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      }
+
+      .retry-button:active {
+        transform: translateY(-1px) scale(1.02);
+      }
+
+      .features {
+        margin-top: 3rem;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* Fallback for browsers that don't support backdrop-filter */
+      @supports not (backdrop-filter: blur(10px)) {
+        .features {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+
+      .features h3 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        opacity: 0.95;
+      }
+
+      .feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.2rem;
+        font-size: 1rem;
+        opacity: 0.9;
+        transition: all 0.3s ease;
+        padding: 0.5rem;
+        border-radius: 8px;
+      }
+
+      .feature:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+      }
+
+      .feature-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 1rem;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.4),
+          rgba(255, 255, 255, 0.2)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: bold;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+      }
+
+      .status-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.8rem 1.2rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        animation: slideInRight 0.8s ease-out 0.3s both;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #ff6b6b;
+        border-radius: 50%;
+        animation: blink 1.5s infinite;
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0.3;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .offline-container {
+          margin: 1rem;
+          padding: 2rem;
+        }
+
+        h1 {
+          font-size: 2.2rem;
+        }
+
+        .offline-icon {
+          width: 120px;
+          height: 120px;
+          font-size: 3rem;
+        }
+
+        .retry-button {
+          padding: 1rem 2rem;
+          font-size: 1.1rem;
+        }
+
+        .status-indicator {
+          top: 10px;
+          right: 10px;
+          padding: 0.6rem 1rem;
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Status Indicator -->
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span>Offline Mode</span>
+    </div>
+
+    <div class="offline-container">
+      <div class="offline-icon">📱</div>
+
+      <h1>You're Offline</h1>
+      <p class="subtitle">No internet connection detected</p>
+
+      <p class="message">
+        Don't worry! Greep SDS works offline too. Some features may be limited,
+        but you can still access your cached data and continue working
+        seamlessly.
+      </p>
+
+      <a href="/" class="retry-button" onclick="window.location.reload()">
+        🔄 Try Again
+      </a>
+
+      <div class="features">
+        <h3>✨ Available Offline Features</h3>
+        <div class="feature">
+          <div class="feature-icon">✓</div>
+          <span>View cached delivery information</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✓</div>
+          <span>Access your profile data</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✓</div>
+          <span>Continue working with saved data</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⏳</div>
+          <span>Changes will sync when online</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <span>Native app-like experience</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <span>Fast loading from cache</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Enhanced connection status management
+      let connectionCheckInterval;
+      let isReconnecting = false;
+
+      // Update status indicator
+      function updateStatusIndicator(isOnline) {
+        const statusIndicator = document.querySelector(".status-indicator");
+        const statusDot = document.querySelector(".status-dot");
+        const statusText = statusIndicator.querySelector("span");
+
+        if (isOnline) {
+          statusDot.style.background = "#4ade80";
+          statusText.textContent = "Online";
+          statusIndicator.style.background = "rgba(74, 222, 128, 0.2)";
+        } else {
+          statusDot.style.background = "#ff6b6b";
+          statusText.textContent = "Offline Mode";
+          statusIndicator.style.background = "rgba(255, 107, 107, 0.2)";
+        }
+      }
+
+      // Show reconnection animation
+      function showReconnecting() {
+        if (isReconnecting) return;
+        isReconnecting = true;
+
+        const retryButton = document.querySelector(".retry-button");
+        const originalText = retryButton.innerHTML;
+
+        retryButton.innerHTML = "🔄 Reconnecting...";
+        retryButton.style.pointerEvents = "none";
+
+        // Add pulsing animation
+        retryButton.style.animation = "pulse 1s infinite";
+
+        // Reset after 3 seconds
+        setTimeout(() => {
+          retryButton.innerHTML = originalText;
+          retryButton.style.pointerEvents = "auto";
+          retryButton.style.animation = "";
+          isReconnecting = false;
+        }, 3000);
+      }
+
+      // Check if we're back online
+      window.addEventListener("online", () => {
+        console.log("🌐 Back online! Redirecting to main app...");
+        updateStatusIndicator(true);
+
+        // Show success message
+        const message = document.querySelector(".message");
+        const originalMessage = message.textContent;
+        message.innerHTML =
+          "🎉 <strong>Connection restored!</strong> Redirecting to main app...";
+        message.style.color = "#4ade80";
+
+        // Redirect after a short delay
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      });
+
+      // Handle going offline
+      window.addEventListener("offline", () => {
+        console.log("🌐 Connection lost - staying in offline mode");
+        updateStatusIndicator(false);
+      });
+
+      // Enhanced retry button functionality
+      document.querySelector(".retry-button").addEventListener("click", (e) => {
+        e.preventDefault();
+
+        if (navigator.onLine) {
+          window.location.href = "/";
+        } else {
+          showReconnecting();
+
+          // Try to reconnect
+          connectionCheckInterval = setInterval(() => {
+            if (navigator.onLine) {
+              clearInterval(connectionCheckInterval);
+              window.location.href = "/";
+            }
+          }, 1000);
+
+          // Clear interval after 10 seconds
+          setTimeout(() => {
+            if (connectionCheckInterval) {
+              clearInterval(connectionCheckInterval);
+            }
+          }, 10000);
+        }
+      });
+
+      // Show connection status
+      function updateConnectionStatus() {
+        const isOnline = navigator.onLine;
+        console.log("🌐 Connection status:", isOnline ? "Online" : "Offline");
+        updateStatusIndicator(isOnline);
+      }
+
+      // Add feature hover effects
+      document.querySelectorAll(".feature").forEach((feature) => {
+        feature.addEventListener("mouseenter", () => {
+          feature.style.transform = "translateX(8px) scale(1.02)";
+        });
+
+        feature.addEventListener("mouseleave", () => {
+          feature.style.transform = "translateX(0) scale(1)";
+        });
+      });
+
+      // Add loading animation to retry button
+      document
+        .querySelector(".retry-button")
+        .addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-3px) scale(1.05)";
+        });
+
+      document
+        .querySelector(".retry-button")
+        .addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0) scale(1)";
+        });
+
+      // Listen for connection changes
+      window.addEventListener("online", updateConnectionStatus);
+      window.addEventListener("offline", updateConnectionStatus);
+
+      // Initial check
+      updateConnectionStatus();
+
+      // Add some interactive feedback
+      document.addEventListener("DOMContentLoaded", () => {
+        // Animate features on load
+        const features = document.querySelectorAll(".feature");
+        features.forEach((feature, index) => {
+          feature.style.opacity = "0";
+          feature.style.transform = "translateX(-20px)";
+
+          setTimeout(() => {
+            feature.style.transition = "all 0.5s ease-out";
+            feature.style.opacity = "0.9";
+            feature.style.transform = "translateX(0)";
+          }, 500 + index * 100);
+        });
+      });
+    </script>
+  </body>
+</html>

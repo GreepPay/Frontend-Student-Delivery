@@ -4,7 +4,18 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0a84ff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Greep SDS" />
+    <meta name="msapplication-TileColor" content="#0a84ff" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Greep SDS" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
     <!-- <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
@@ -16,9 +27,30 @@
     /> -->
     <meta
       name="description"
-      content="Student Delivery System - Modern OTP-based delivery management"
+      content="Student Delivery System - Modern OTP-based delivery management. Connect students with delivery opportunities."
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/White.png" />
+
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="%PUBLIC_URL%/icons/icon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="%PUBLIC_URL%/icons/icon-16x16.png"
+    />
+    <link
+      rel="mask-icon"
+      href="%PUBLIC_URL%/icons/icon-192x192.png"
+      color="#0a84ff"
+    />
+
+    <!-- PWA Manifest -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Greep SDS</title>
     <script>
@@ -352,5 +384,129 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      // Register Service Worker for PWA functionality
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+              console.log(
+                "✅ PWA Service Worker registered successfully:",
+                registration.scope
+              );
+
+              // Check for updates
+              registration.addEventListener("updatefound", () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    // New content is available, show update notification
+                    if (confirm("New version available! Reload to update?")) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.error(
+                "❌ PWA Service Worker registration failed:",
+                error
+              );
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log("📱 PWA Install prompt triggered");
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Show install button or notification
+        const installButton = document.createElement("button");
+        installButton.textContent = "Install App";
+        installButton.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: #0a84ff;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+          z-index: 1000;
+          transition: all 0.3s ease;
+        `;
+
+        installButton.addEventListener("click", () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+              console.log("✅ PWA installed successfully");
+            } else {
+              console.log("❌ PWA installation declined");
+            }
+            deferredPrompt = null;
+            installButton.remove();
+          });
+        });
+
+        document.body.appendChild(installButton);
+
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          if (installButton.parentNode) {
+            installButton.remove();
+          }
+        }, 10000);
+      });
+
+      // PWA Installed Event
+      window.addEventListener("appinstalled", () => {
+        console.log("🎉 PWA installed successfully!");
+        // Hide install button if it exists
+        const installButton = document.querySelector(
+          'button[style*="position: fixed"]'
+        );
+        if (installButton) {
+          installButton.remove();
+        }
+      });
+
+      // Online/Offline Status
+      window.addEventListener("online", () => {
+        console.log("🌐 App is back online");
+        // Show online notification
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: "ONLINE" });
+        }
+      });
+
+      window.addEventListener("offline", () => {
+        console.log("📴 App is offline");
+        // Show offline notification
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: "OFFLINE" });
+        }
+      });
+
+      // PWA Update Available
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        console.log("🔄 PWA controller changed - new version active");
+        window.location.reload();
+      });
+    </script>
   </body>
 </html>

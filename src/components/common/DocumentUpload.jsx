@@ -6,14 +6,12 @@ import {
     ClockIcon,
     ExclamationTriangleIcon,
     PhotoIcon,
-    AcademicCapIcon,
     IdentificationIcon,
-    TruckIcon,
     SparklesIcon
 } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
 import apiService from '../../services/api';
 import { compressImage } from '../../services/cloudinaryService';
+import notificationManager from '../../services/notificationManager';
 import AIVerificationStatus from './AIVerificationStatus';
 
 const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
@@ -44,18 +42,9 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
             fileTypeHint: 'JPEG, PNG, or WebP image'
         },
         {
-            key: 'universityEnrollment',
-            label: 'University Enrollment Certificate',
-            description: 'Upload your university enrollment or registration certificate',
-            required: true,
-            icon: AcademicCapIcon,
-            acceptedTypes: 'image/*', // Changed: Only images allowed
-            fileTypeHint: 'JPEG, PNG, or WebP image'
-        },
-        {
-            key: 'identityCard',
-            label: 'Identity Card',
-            description: 'Upload your national identity card or passport',
+            key: 'passportPhoto',
+            label: 'Passport Photo',
+            description: 'Upload your passport photo or national identity card',
             required: true,
             icon: IdentificationIcon,
             acceptedTypes: 'image/*', // Changed: Only images allowed
@@ -77,9 +66,9 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
 
         // Show success message based on verification result
         if (result.verification?.isAuthentic) {
-            toast.success(`✅ ${documentTypes.find(d => d.key === documentType)?.label} verified by AI!`);
+            notificationManager.showToast(`✅ ${documentTypes.find(d => d.key === documentType)?.label} verified by AI!`, 'success');
         } else {
-            toast.error(`❌ ${documentTypes.find(d => d.key === documentType)?.label} verification failed. Please check the issues.`);
+            notificationManager.showToast(`❌ ${documentTypes.find(d => d.key === documentType)?.label} verification failed. Please check the issues.`, 'error');
         }
     };
 
@@ -88,7 +77,7 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
         const filesToUpload = Object.keys(selectedFiles).filter(key => selectedFiles[key]);
 
         if (filesToUpload.length === 0) {
-            toast.error('Please select at least one document to upload');
+            notificationManager.showToast('Please select at least one document to upload', 'error');
             return;
         }
 
@@ -159,16 +148,16 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
             }
 
             if (successCount > 0) {
-                toast.success(`✅ Successfully uploaded ${successCount} document${successCount > 1 ? 's' : ''}!`);
+                notificationManager.showToast(`✅ Successfully uploaded ${successCount} document${successCount > 1 ? 's' : ''}!`, 'success');
             }
 
             if (errorMessages.length > 0) {
-                toast.error(`❌ Upload errors:\n${errorMessages.join('\n')}`);
+                notificationManager.showToast(`❌ Upload errors:\n${errorMessages.join('\n')}`, 'error');
             }
 
         } catch (error) {
             console.error('❌ Error in bulk upload:', error);
-            toast.error(`Upload failed: ${error.message}`);
+            notificationManager.showToast(`Upload failed: ${error.message}`, 'error');
         } finally {
             setUploadingAll(false);
         }
@@ -179,14 +168,14 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
         if (file) {
             // Validate file type immediately
             if (!file.type.startsWith('image/')) {
-                toast.error(`❌ Invalid file type for ${documentTypes.find(d => d.key === documentType)?.label}. Only image files (JPEG, PNG, WebP) are allowed. PDF files are not supported.`);
+                notificationManager.showToast(`❌ Invalid file type for ${documentTypes.find(d => d.key === documentType)?.label}. Only image files (JPEG, PNG, WebP) are allowed. PDF files are not supported.`, 'error');
                 event.target.value = ''; // Clear the input
                 return;
             }
 
             // Validate file size immediately
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(`❌ File too large for ${documentTypes.find(d => d.key === documentType)?.label}. Maximum size is 5MB.`);
+                notificationManager.showToast(`❌ File too large for ${documentTypes.find(d => d.key === documentType)?.label}. Maximum size is 5MB.`, 'error');
                 event.target.value = ''; // Clear the input
                 return;
             }
@@ -201,20 +190,20 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
     const handleUpload = async (documentType) => {
         const file = selectedFiles[documentType];
         if (!file) {
-            toast.error('Please select a file first');
+            notificationManager.showToast('Please select a file first', 'error');
             return;
         }
 
         // Validate file size (5MB limit)
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('File size must be less than 5MB');
+            notificationManager.showToast('File size must be less than 5MB', 'error');
             return;
         }
 
         // Validate file type
         const isValidType = file.type.startsWith('image/') || file.type === 'application/pdf';
         if (!isValidType) {
-            toast.error('Please select an image (JPEG, PNG, WebP) or PDF file');
+            notificationManager.showToast('Please select an image (JPEG, PNG, WebP) or PDF file', 'error');
             return;
         }
 
@@ -251,7 +240,7 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
             const response = await apiService.uploadDriverDocument(documentType, formData);
 
             if (response.success) {
-                toast.success(`${documentTypes.find(d => d.key === documentType)?.label} uploaded successfully!`);
+                notificationManager.showToast(`${documentTypes.find(d => d.key === documentType)?.label} uploaded successfully!`, 'success');
 
                 // Clear the selected file
                 setSelectedFiles(prev => {
@@ -292,7 +281,7 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
                 errorMessage = error.message;
             }
 
-            toast.error(`Upload failed: ${errorMessage}`);
+            notificationManager.showToast(`Upload failed: ${errorMessage}`, 'error');
         } finally {
             setUploading(prev => ({ ...prev, [documentType]: false }));
         }

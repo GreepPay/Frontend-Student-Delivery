@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { isSuperAdmin } from '../../utils/userHelpers';
 import SimpleNotifications from '../admin/SimpleNotifications';
 import Avatar from '../common/Avatar';
 import GlobalSearch from '../common/GlobalSearch';
-import { useToast } from '../common/ToastProvider';
+import MultiDriverMessaging from '../common/MultiDriverMessaging';
+import PWAInstallButton from '../common/PWAInstallButton';
+import PWAStatus from '../common/PWAStatus';
+import PWANotification from '../common/PWANotification';
+import PWAUpdateNotification from '../common/PWAUpdateNotification';
 import {
     ChartBarIcon,
     TruckIcon,
@@ -30,7 +34,6 @@ const AdminLayout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    const { showSuccess } = useToast();
 
     const navigation = [
         { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -50,7 +53,6 @@ const AdminLayout = ({ children }) => {
     const handleLogout = async () => {
         await logout();
         navigate('/');
-        showSuccess('Logged out successfully');
     };
 
     // Updated isActive logic for better path matching
@@ -135,6 +137,9 @@ const AdminLayout = ({ children }) => {
 
                         {/* Right side */}
                         <div className="flex items-center space-x-2 sm:space-x-4">
+                            {/* Admin Messaging */}
+                            <MultiDriverMessaging />
+
                             {/* Notifications */}
                             <SimpleNotifications />
 
@@ -206,6 +211,17 @@ const AdminLayout = ({ children }) => {
                     className="fixed inset-0 z-40"
                     onClick={() => setUserMenuOpen(false)}
                 />
+            )}
+
+            {/* PWA Install Button */}
+            <PWAInstallButton variant="floating" />
+            <PWAUpdateNotification />
+
+            {/* PWA Status (for development/debugging) */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="fixed top-4 left-4 z-50">
+                    <PWAStatus showDetails={false} />
+                </div>
             )}
         </div>
     );

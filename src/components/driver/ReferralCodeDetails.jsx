@@ -137,7 +137,7 @@ const ReferralCodeDetails = ({ referralData, configData }) => {
             )}
 
             {/* Code Benefits */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Permanent Code Benefits</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-start space-x-3">
@@ -169,7 +169,7 @@ const ReferralCodeDetails = ({ referralData, configData }) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

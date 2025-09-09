@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
 import apiService from '../../services/api';
+import notificationManager from '../../services/notificationManager';
 import { BellIcon, XMarkIcon, EyeIcon, ClockIcon, UserIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../common/ToastProvider';
 import Modal from '../common/Modal';
@@ -22,7 +23,6 @@ const SimpleNotifications = () => {
     const [replyMessage, setReplyMessage] = useState('');
     const [selectedNotification, setSelectedNotification] = useState(null);
     const dropdownRef = useRef(null);
-    const processedNotifications = useRef(new Set()); // Track processed notifications to prevent duplicates
 
     // Handle click outside dropdown
     useEffect(() => {
@@ -52,7 +52,24 @@ const SimpleNotifications = () => {
                 const response = await apiService.getAdminNotifications({ limit: 10 });
                 console.log('📋 Loading existing notifications:', response);
                 if (response && response.success && response.data?.notifications) {
-                    const existingNotifications = response.data.notifications.map(notification => {
+                    // Filter out driver messages from API response
+                    const filteredNotifications = response.data.notifications.filter(notification => {
+                        return !(
+                            notification.type === 'driver-message' ||
+                            notification.type === 'message' ||
+                            notification.senderType === 'driver' ||
+                            notification.message?.includes('Message from') ||
+                            notification.title?.includes('Message from') ||
+                            notification.message?.includes('💬') ||
+                            notification.message?.toLowerCase().includes('how low can you go') ||
+                            notification.message?.toLowerCase().includes('are you sur') ||
+                            notification.message?.toLowerCase().includes('hello') ||
+                            notification.message?.toLowerCase().includes('hey') ||
+                            notification.message?.toLowerCase().includes('test message')
+                        );
+                    });
+
+                    const existingNotifications = filteredNotifications.map(notification => {
                         // Handle invalid or missing createdAt
                         let timestamp;
                         try {
@@ -101,111 +118,48 @@ const SimpleNotifications = () => {
             //console.log('🔌 SimpleNotifications: Socket already connected');
         }
 
-        // Helper function to create unique notification ID
-        const createNotificationId = (data) => {
-            if (data.id) return data.id;
-            if (data.message && data.timestamp) {
-                return `${data.message}-${data.timestamp}`;
-            }
-            return `${Date.now()}-${Math.random()}`;
-        };
-
-        // Helper function to check if notification is duplicate
-        const isDuplicateNotification = (notificationId) => {
-            if (processedNotifications.current.has(notificationId)) {
-                return true;
-            }
-            processedNotifications.current.add(notificationId);
-            // Clean up old entries to prevent memory leaks
-            if (processedNotifications.current.size > 100) {
-                const entries = Array.from(processedNotifications.current);
-                processedNotifications.current = new Set(entries.slice(-50));
-            }
-            return false;
-        };
+        // Register this component with the notification manager
+        const componentName = 'AdminSimpleNotifications';
 
         // Listen for notifications - OPTIMIZED FOR IMMEDIATE RESPONSE
         socketService.on('receive_notification', (data) => {
-            //console.log('🎉 Admin received notification:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate notification detected, skipping:', notificationId);
-                return;
+            const notification = notificationManager.processNotification(data, componentName);
+            if (notification) {
+                addNotification(notification);
             }
-
-            // Play sound IMMEDIATELY (don't wait for notification to be added)
-            soundService.playSound('notification').catch(err =>
-                console.log('🔊 Sound play failed:', err)
-            );
-
-            const notification = {
-                id: notificationId,
-                message: data.message,
-                timestamp: new Date(),
-                type: 'notification'
-            };
-
-            addNotification(notification);
         });
 
         socketService.on('driver-status-changed', (data) => {
-            // Play sound IMMEDIATELY
-            soundService.playSound('notification').catch(err =>
-                console.log('🔊 Sound play failed:', err)
-            );
-
-            const notification = {
-                id: Date.now(),
+            const notification = notificationManager.processNotification({
+                ...data,
                 message: `Driver ${data.name || 'Unknown'} is now ${data.isOnline ? 'online' : 'offline'}`,
-                timestamp: new Date(),
                 type: 'driver-status'
-            };
-
-            addNotification(notification);
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
+            }
         });
 
         socketService.on('delivery-status-changed', (data) => {
-            // Play delivery sound IMMEDIATELY
-            soundService.playSound('delivery').catch(err => console.log('🔊 Delivery sound failed:', err));
-
-            const notification = {
-                id: Date.now(),
+            const notification = notificationManager.processNotification({
+                ...data,
                 message: `Delivery ${data.deliveryCode} status changed to ${data.status}`,
-                timestamp: new Date(),
                 type: 'delivery-status'
-            };
-
-            addNotification(notification);
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
+            }
         });
 
         //console.log('🔌 SimpleNotifications: Setting up emergency-alert listener');
         socketService.on('emergency-alert', (data) => {
-            //console.log('🚨 Admin received emergency alert:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate emergency alert detected, skipping:', notificationId);
-                return;
-            }
-
-            // Play emergency sound IMMEDIATELY (before any processing)
-            soundService.playSound('alert').catch(err => console.log('🔊 Emergency sound failed:', err));
-
-            //console.log('🔍 Emergency alert driver ID:', data.driverId);
-            //console.log('🔍 Emergency alert driver name:', data.driverName);
-            //console.log('🔍 Emergency alert message:', data.message);
-            //console.log('🔍 Emergency alert timestamp:', data.timestamp);
-
-            // Create detailed emergency notification
             const emergencyMessage = `🚨 EMERGENCY from ${data.driverName || 'Unknown Driver'} (${data.driverArea || 'Unknown Area'}): ${data.message}`;
 
-            const notification = {
-                id: notificationId,
+            const notification = notificationManager.processNotification({
+                ...data,
                 message: emergencyMessage,
-                timestamp: new Date(),
-                priority: 'high',
                 type: 'emergency',
+                priority: 'high',
                 emergencyData: {
                     driverId: data.driverId,
                     driverName: data.driverName,
@@ -217,159 +171,72 @@ const SimpleNotifications = () => {
                     responseInstructions: data.responseInstructions,
                     socketId: data.socketId
                 }
-            };
+            }, componentName);
 
-            addNotification(notification);
+            if (notification) {
+                addNotification(notification);
+            }
         });
 
         // Listen for new notification events from API - IMPROVED FOR IMMEDIATE RESPONSE
         socketService.on('new-notification', (data) => {
-            //console.log('🔔 Admin received new notification from API:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate new-notification detected, skipping:', notificationId);
-                return;
+            const notification = notificationManager.processNotification({
+                ...data,
+                message: data.message || data.title || 'New notification received'
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
             }
-
-            // Play sound IMMEDIATELY (before creating notification object)
-            if (data.type === 'emergency-alert') {
-                soundService.playSound('alert').catch(err => console.log('🔊 Alert sound failed:', err));
-            } else if (data.type === 'delivery') {
-                soundService.playSound('delivery').catch(err => console.log('🔊 Delivery sound failed:', err));
-            } else {
-                soundService.playSound('notification').catch(err => console.log('🔊 Notification sound failed:', err));
-            }
-
-            const notification = {
-                id: notificationId,
-                message: data.message || data.title || 'New notification received',
-                timestamp: new Date(),
-                type: data.type || 'notification',
-                priority: data.priority || 'medium'
-            };
-
-            // Add notification immediately without delays
-            addNotification(notification);
         });
 
-        // Listen for driver messages (multiple possible event names) - IMPROVED FOR IMMEDIATE RESPONSE
-        socketService.on('driver-message', (data) => {
-            //console.log('💬 Admin received driver message:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate driver message detected, skipping:', notificationId);
-                return;
-            }
-
-            // Play sound IMMEDIATELY
-            soundService.playSound('notification').catch(err => console.log('🔊 Message sound failed:', err));
-
-            const notification = {
-                id: notificationId,
-                message: `💬 Message from ${data.driverName || 'Driver'}: ${data.message}`,
-                timestamp: new Date(),
-                type: 'driver-message',
-                priority: 'medium',
-                sender: data.driverName || 'Driver',
-                driverId: data.driverId
-            };
-
-            addNotification(notification);
-        });
+        // Driver messages are handled by MultiDriverMessaging component only
+        // No notifications in admin bell for driver messages - they appear in Driver Conversations modal
 
         // Listen for new messages (general)
         socketService.on('new-message', (data) => {
-            //console.log('💬 Admin received new message:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate new-message detected, skipping:', notificationId);
-                return;
-            }
-
-            const notification = {
-                id: notificationId,
+            const notification = notificationManager.processNotification({
+                ...data,
                 message: `💬 Message from ${data.senderType || 'User'}: ${data.message}`,
-                timestamp: new Date(),
                 type: 'message',
-                priority: 'medium',
                 sender: data.senderType || 'User'
-            };
-
-            // Play notification sound
-            soundService.playSound('notification');
-            addNotification(notification);
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
+            }
         });
 
         // Listen for admin notifications (general)
         socketService.on('admin-notification', (data) => {
-            //console.log('🔔 Admin received admin notification:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate admin notification detected, skipping:', notificationId);
-                return;
+            const notification = notificationManager.processNotification({
+                ...data,
+                message: data.message || 'New notification'
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
             }
-
-            const notification = {
-                id: notificationId,
-                message: data.message || 'New notification',
-                timestamp: new Date(),
-                type: data.type || 'notification',
-                priority: data.priority || 'medium'
-            };
-
-            // Play appropriate sound
-            soundService.playSound('notification');
-            addNotification(notification);
         });
 
         // Listen for system notifications
         socketService.on('system-notification', (data) => {
-            //console.log('🔔 Admin received system notification:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate system notification detected, skipping:', notificationId);
-                return;
-            }
-
-            const notification = {
-                id: notificationId,
+            const notification = notificationManager.processNotification({
+                ...data,
                 message: data.message || 'System notification',
-                timestamp: new Date(),
-                type: 'system',
-                priority: data.priority || 'medium'
-            };
-
-            // Play appropriate sound
-            soundService.playSound('notification');
-            addNotification(notification);
+                type: 'system'
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
+            }
         });
 
         // Listen for any notification event (catch-all)
         socketService.on('notification', (data) => {
-            //console.log('🔔 Admin received notification event:', data);
-
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate general notification detected, skipping:', notificationId);
-                return;
+            const notification = notificationManager.processNotification({
+                ...data,
+                message: data.message || 'New notification'
+            }, componentName);
+            if (notification) {
+                addNotification(notification);
             }
-
-            const notification = {
-                id: notificationId,
-                message: data.message || 'New notification',
-                timestamp: new Date(),
-                type: data.type || 'notification',
-                priority: data.priority || 'medium'
-            };
-
-            // Play notification sound
-            soundService.playSound('notification');
-            addNotification(notification);
         });
 
         // Check connection status periodically
@@ -377,7 +244,7 @@ const SimpleNotifications = () => {
             setIsConnected(socketService.isConnected());
         };
         checkConnection();
-        const interval = setInterval(checkConnection, 5000);
+        const interval = setInterval(checkConnection, 30000); // Reduced from 5s to 30s
 
         return () => {
             clearInterval(interval);

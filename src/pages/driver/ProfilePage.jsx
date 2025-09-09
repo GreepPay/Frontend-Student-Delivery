@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../../components/common/Avatar';
-import DocumentUpload from '../../components/common/DocumentUpload';
 import CapitalizedInput from '../../components/common/CapitalizedInput';
 import SearchableDropdown from '../../components/common/SearchableDropdown';
 import apiService from '../../services/api';
@@ -11,9 +10,10 @@ import { capitalizeName } from '../../utils/capitalize';
 import { isDriverVerified, getVerificationStatus } from '../../utils/verificationHelpers';
 import toast from 'react-hot-toast';
 import Button from '../../components/ui/Button';
+import StatusToggle from '../../components/driver/StatusToggle';
+import DocumentUpload from '../../components/common/DocumentUpload';
 import {
     CameraIcon,
-    InformationCircleIcon,
     CheckCircleIcon,
     PencilIcon,
     DocumentTextIcon,
@@ -55,6 +55,23 @@ const DriverProfilePage = () => {
     const [transportationMethods, setTransportationMethods] = useState([]);
     const [universities, setUniversities] = useState([]);
 
+    // Helper function to normalize transportation method values
+    const normalizeTransportationMethod = (method) => {
+        if (!method) return '';
+
+        const methodMap = {
+            'Walking': 'walking',
+            'Bicycle': 'bicycle',
+            'Motorcycle': 'motorcycle',
+            'Scooter': 'scooter',
+            'Car': 'car',
+            'Public Transport': 'other',
+            'Other': 'other'
+        };
+
+        return methodMap[method] || method.toLowerCase();
+    };
+
     const fetchProfileOptions = useCallback(async () => {
         try {
             console.log('🔄 Fetching profile options...');
@@ -74,14 +91,32 @@ const DriverProfilePage = () => {
                 ]);
                 console.log('✅ Service areas loaded:', addresses);
 
-                const methods = Array.isArray(data.data.transportationMethods) && data.data.transportationMethods.length > 0
+                // Get transportation methods from API or use fallback
+                const apiMethods = Array.isArray(data.data.transportationMethods) && data.data.transportationMethods.length > 0
                     ? data.data.transportationMethods
-                    : ['Walking', 'Bicycle', 'Motorcycle', 'Car', 'Public Transport', 'Other'];
+                    : ['walking', 'bicycle', 'motorcycle', 'scooter', 'car', 'other'];
+
+                // Create normalized methods with proper labels
+                const normalizedMethods = apiMethods.map(method => {
+                    const labelMap = {
+                        'walking': 'Walking',
+                        'bicycle': 'Bicycle',
+                        'motorcycle': 'Motorcycle',
+                        'scooter': 'Scooter',
+                        'car': 'Car',
+                        'other': 'Other'
+                    };
+                    return {
+                        value: method,
+                        label: labelMap[method] || method.charAt(0).toUpperCase() + method.slice(1)
+                    };
+                });
+
                 setTransportationMethods([
                     { value: '', label: 'Select Transportation Method' },
-                    ...methods.map(method => ({ value: method, label: method }))
+                    ...normalizedMethods
                 ]);
-                console.log('✅ Transportation methods loaded:', methods);
+                console.log('✅ Transportation methods loaded:', normalizedMethods);
 
                 const universitiesList = Array.isArray(data.data.universities) && data.data.universities.length > 0
                     ? data.data.universities
@@ -190,19 +225,54 @@ const DriverProfilePage = () => {
                     documentsData: documents
                 });
 
-                // Add documents to profile data
-                data.data.documents = documents;
+                // Filter documents to only include the 3 required types
+                const filteredDocuments = {};
+                const requiredDocumentTypes = ['studentId', 'profilePhoto', 'passportPhoto'];
+
+                // Map old document types to new ones if needed
+                const documentTypeMapping = {
+                    'identityCard': 'passportPhoto', // Map old identityCard to passportPhoto
+                    'universityEnrollment': null // Remove universityEnrollment
+                };
+
+                requiredDocumentTypes.forEach(docType => {
+                    if (documents[docType]) {
+                        filteredDocuments[docType] = documents[docType];
+                    }
+                });
+
+                // Handle document type mapping
+                Object.entries(documentTypeMapping).forEach(([oldType, newType]) => {
+                    if (documents[oldType] && newType) {
+                        // Map old document type to new one
+                        filteredDocuments[newType] = documents[oldType];
+                        console.log(`🔄 Mapped document type: ${oldType} → ${newType}`);
+                    }
+                });
+
+                console.log('📄 Filtered documents for frontend:', {
+                    originalCount: Object.keys(documents).length,
+                    filteredCount: Object.keys(filteredDocuments).length,
+                    filteredTypes: Object.keys(filteredDocuments),
+                    filteredDocuments: filteredDocuments
+                });
+
+                // Add filtered documents to profile data
+                data.data.documents = filteredDocuments;
             } else {
                 console.log('⚠️ Documents fetch failed or no documents found');
             }
 
             if (data.success && data.data) {
+                const documentCount = Object.keys(data.data.documents || {}).length;
                 console.log('✅ Profile data received:', {
                     hasProfileImage: !!data.data.profileImage,
                     profileImageUrl: data.data.profileImage,
                     profileData: data.data,
                     documents: data.data.documents,
-                    documentCount: Object.keys(data.data.documents || {}).length,
+                    documentCount: documentCount,
+                    expectedDocumentCount: 3,
+                    documentTypes: Object.keys(data.data.documents || {}),
                     profileStructure: {
                         profileImage: data.data.profileImage,
                         profile: data.data.profile,
@@ -247,7 +317,7 @@ const DriverProfilePage = () => {
                     phone: data.data.profile?.personalDetails?.phone || '',
                     studentId: data.data.profile?.studentInfo?.studentId || '',
                     university: data.data.profile?.studentInfo?.university || '',
-                    transportationMethod: data.data.profile?.transportation?.method || '',
+                    transportationMethod: normalizeTransportationMethod(data.data.profile?.transportation?.method || ''),
                     transportationArea: data.data.profile?.transportation?.area || ''
                 });
             }
@@ -270,14 +340,13 @@ const DriverProfilePage = () => {
 
         try {
             // Send flat structure instead of nested objects
-            // Remove email field as it's causing validation error
+            // Remove email and transportationArea fields as they're causing validation errors
             const updateData = {
                 fullName: formData.fullName,
                 phone: formData.phone,
                 studentId: formData.studentId,
                 university: formData.university,
-                transportationMethod: formData.transportationMethod,
-                transportationArea: formData.transportationArea
+                transportationMethod: formData.transportationMethod
             };
 
             console.log('📤 Sending profile update data:', updateData);
@@ -316,10 +385,24 @@ const DriverProfilePage = () => {
             phone: profile?.profile?.personalDetails?.phone || '',
             studentId: profile?.profile?.studentInfo?.studentId || '',
             university: profile?.profile?.studentInfo?.university || '',
-            transportationMethod: profile?.profile?.transportation?.method || '',
+            transportationMethod: normalizeTransportationMethod(profile?.profile?.transportation?.method || ''),
             transportationArea: profile?.profile?.transportation?.area || ''
         });
         setIsEditing(false);
+    };
+
+    const handleDocumentUploaded = (documentType, documentData) => {
+        console.log('📄 Document uploaded successfully:', { documentType, documentData });
+
+        // Update the profile state with the new document
+        setProfile(prevProfile => ({
+            ...prevProfile,
+            documents: {
+                ...prevProfile.documents,
+                [documentType]: documentData
+            }
+        }));
+
     };
 
 
@@ -376,7 +459,6 @@ const DriverProfilePage = () => {
                 console.log('📥 Upload API response:', result);
 
                 if (result.success === true) {
-                    toast.success('Profile image uploaded successfully!');
                     const imageUrl = result.data?.profilePicture || result.data?.optimizedUrl || result.data?.imageUrl || result.data?.url;
 
                     console.log('✅ Image upload successful:', {
@@ -449,13 +531,13 @@ const DriverProfilePage = () => {
         if (isAuthenticated && user && user.id) {
             fetchProfile();
         }
-    }, [user?.id, isAuthenticated, fetchProfile]);
+    }, [user, isAuthenticated, fetchProfile]);
 
     useEffect(() => {
         console.log('🔄 Component mounted, fetching profile options...');
         console.log('🔄 Current state - serviceAreas:', serviceAreas.length, 'transportationMethods:', transportationMethods.length);
         fetchProfileOptions();
-    }, [fetchProfileOptions]);
+    }, [fetchProfileOptions, serviceAreas.length, transportationMethods.length]);
 
     // Debug: Log when dropdown options change
     useEffect(() => {
@@ -530,6 +612,9 @@ const DriverProfilePage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Status Toggle */}
+                <StatusToggle />
 
                 {/* Profile Overview Card */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
@@ -1148,8 +1233,7 @@ const DriverProfilePage = () => {
                                     {[
                                         { key: 'studentId', label: 'Student ID', required: true },
                                         { key: 'profilePhoto', label: 'Profile Photo', required: true },
-                                        { key: 'universityEnrollment', label: 'University Enrollment', required: true },
-                                        { key: 'identityCard', label: 'Identity Card', required: true }
+                                        { key: 'passportPhoto', label: 'Passport Photo', required: true }
                                     ].map((doc) => {
                                         const document = profile?.documents?.[doc.key];
                                         const isUploaded = document && document.status !== 'missing';
@@ -1196,80 +1280,12 @@ const DriverProfilePage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
-                                <DocumentUpload
-                                    documents={profile?.documents || {}}
-                                    onDocumentUploaded={async (documentType, documentData) => {
-                                        console.log('📄 Document uploaded successfully:', { documentType, documentData });
-
-                                        // Show success message
-                                        toast.success(`${documentType} uploaded successfully!`);
-
-                                        // Log the document data structure to debug admin visibility
-                                        console.log('🔍 Document data structure for admin:', {
-                                            documentType,
-                                            documentData,
-                                            hasFileUrl: !!documentData?.fileUrl,
-                                            hasDocumentUrl: !!documentData?.documentUrl,
-                                            hasUrl: !!documentData?.url,
-                                            hasImageUrl: !!documentData?.imageUrl,
-                                            hasCloudinaryUrl: !!documentData?.cloudinaryUrl,
-                                            allFields: Object.keys(documentData || {})
-                                        });
-
-                                        // Enhanced analysis of the upload response
-                                        console.log('🔍 Document upload response analysis:', {
-                                            success: documentData?.success,
-                                            hasData: !!documentData?.data,
-                                            dataKeys: documentData?.data ? Object.keys(documentData.data) : [],
-                                            hasDocumentUrl: !!documentData?.data?.documentUrl,
-                                            hasFileUrl: !!documentData?.data?.fileUrl,
-                                            hasUrl: !!documentData?.data?.url,
-                                            hasImageUrl: !!documentData?.data?.imageUrl,
-                                            hasCloudinaryUrl: !!documentData?.data?.cloudinaryUrl,
-                                            status: documentData?.data?.status,
-                                            uploadDate: documentData?.data?.uploadDate,
-                                            fullResponse: documentData
-                                        });
-
-                                        // Immediately update the local state with the new document data
-                                        setProfile(prev => {
-                                            const updatedProfile = {
-                                                ...prev,
-                                                documents: {
-                                                    ...prev?.documents,
-                                                    [documentType]: documentData?.data || documentData
-                                                }
-                                            };
-                                            console.log('🔄 Updated profile with document data:', {
-                                                documentType,
-                                                updatedDocuments: updatedProfile.documents,
-                                                documentCount: Object.keys(updatedProfile.documents || {}).length
-                                            });
-                                            return updatedProfile;
-                                        });
-
-                                        // Then refresh profile data from server to ensure consistency
-                                        setTimeout(async () => {
-                                            console.log('🔄 Refreshing profile data after document upload...');
-                                            await fetchProfile(true);
-                                        }, 1000);
-                                    }}
-                                    user={user}
-                                />
-
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div className="flex">
-                                        <InformationCircleIcon className="w-5 h-5 text-blue-400 mt-0.5" />
-                                        <div className="ml-3">
-                                            <h3 className="text-sm font-medium text-blue-800">Verification Status</h3>
-                                            <div className="mt-2 text-sm text-blue-700">
-                                                <p>Upload your required documents to verify your account and start accepting deliveries.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Document Upload Component */}
+                            <DocumentUpload
+                                documents={profile?.documents || {}}
+                                onDocumentUploaded={handleDocumentUploaded}
+                                user={user}
+                            />
                         </div>
                     )}
                 </div>

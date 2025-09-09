@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     BellIcon,
     CheckIcon,
@@ -27,7 +27,7 @@ const AdminNotificationsPage = () => {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     // Load notifications from API
-    const loadNotifications = async (silent = false) => {
+    const loadNotifications = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
         try {
             console.log('🔔 AdminNotificationsPage: Loading notifications with filter:', filter);
@@ -51,10 +51,28 @@ const AdminNotificationsPage = () => {
                 // The backend returns { data: { notifications: [...] } }
                 const notificationsData = response.data?.notifications || response.data || response.notifications || [];
                 const notificationsArray = Array.isArray(notificationsData) ? notificationsData : [];
-                console.log('🔔 AdminNotificationsPage: Setting notifications array:', notificationsArray);
+
+                // Filter out driver messages from API response
+                const filteredNotifications = notificationsArray.filter(notification => {
+                    return !(
+                        notification.type === 'driver-message' ||
+                        notification.type === 'message' ||
+                        notification.senderType === 'driver' ||
+                        notification.message?.includes('Message from') ||
+                        notification.title?.includes('Message from') ||
+                        notification.message?.includes('💬') ||
+                        notification.message?.toLowerCase().includes('how low can you go') ||
+                        notification.message?.toLowerCase().includes('are you sur') ||
+                        notification.message?.toLowerCase().includes('hello') ||
+                        notification.message?.toLowerCase().includes('hey') ||
+                        notification.message?.toLowerCase().includes('test message')
+                    );
+                });
+
+                console.log('🔔 AdminNotificationsPage: Setting filtered notifications array:', filteredNotifications);
 
                 // Debug: Log the notification data to see what we're getting
-                notificationsArray.forEach((notification, index) => {
+                filteredNotifications.forEach((notification, index) => {
                     console.log(`📅 Notification ${index + 1}:`, {
                         id: notification._id,
                         idType: typeof notification._id,
@@ -66,7 +84,7 @@ const AdminNotificationsPage = () => {
                     });
                 });
 
-                setNotifications(notificationsArray);
+                setNotifications(filteredNotifications);
             } else {
                 console.warn('🔔 AdminNotificationsPage: Backend returned unsuccessful response:', response);
                 setNotifications([]);
@@ -103,12 +121,12 @@ const AdminNotificationsPage = () => {
         } finally {
             if (!silent) setLoading(false);
         }
-    };
+    }, [filter]);
 
     // Initial load and filter changes
     useEffect(() => {
         loadNotifications();
-    }, [filter]);
+    }, [loadNotifications]);
 
     // WebSocket setup for real-time notifications
     useEffect(() => {

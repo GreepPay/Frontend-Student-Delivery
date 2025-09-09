@@ -145,6 +145,12 @@ const DriverRealTimeNotifications = () => {
         });
 
         socketService.on('new-message', (data) => {
+            // Don't show admin messages as notifications - they should appear in message box
+            if (data.senderType === 'admin' || data.sender === 'admin' || data.adminId) {
+                console.log('📨 Admin message received - will be handled by message box component');
+                return;
+            }
+
             addNotification({
                 id: Date.now(),
                 type: 'message',

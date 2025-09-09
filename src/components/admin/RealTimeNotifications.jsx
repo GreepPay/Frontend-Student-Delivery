@@ -150,21 +150,11 @@ const RealTimeNotifications = () => {
             });
         });
 
+        // Note: Driver messages are now handled by AdminMessaging component
+        // Exclude from notifications to route to messaging system
         socketService.on('new-message', (data) => {
-            const notificationId = createNotificationId(data);
-            if (isDuplicateNotification(notificationId)) {
-                console.log('🔄 Duplicate new-message detected, skipping:', notificationId);
-                return;
-            }
-
-            addNotification({
-                id: notificationId,
-                type: 'message',
-                title: 'New Message',
-                message: `New message from ${data.senderType}: ${data.message.substring(0, 50)}...`,
-                timestamp: new Date(),
-                data
-            });
+            console.log('💬 RealTimeNotifications: New message received, routing to AdminMessaging');
+            // Don't add to notifications - AdminMessaging component handles this
         });
 
         socketService.on('delivery-assigned', (data) => {

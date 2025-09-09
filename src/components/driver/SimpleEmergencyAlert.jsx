@@ -57,12 +57,17 @@ const SimpleEmergencyAlert = () => {
                 }
             }
 
-            // Send emergency alert via API
-            const response = await apiService.sendEmergencyAlert(message.trim(), location);
+            // Send emergency alert via the messaging API
+            const response = await apiService.sendMessage({
+                message: message.trim(),
+                type: 'emergency',
+                location: location,
+                timestamp: new Date().toISOString()
+            });
 
             if (response.success) {
                 showSuccess('Emergency alert sent successfully!');
-                console.log('✅ Emergency alert sent via API:', response);
+                console.log('✅ Emergency alert sent via messaging API:', response);
             } else {
                 showError('Failed to send emergency alert');
                 console.error('❌ Emergency alert failed:', response);
