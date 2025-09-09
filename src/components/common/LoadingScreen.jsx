@@ -87,7 +87,7 @@ const LoadingScreen = ({ message = "Loading..." }) => {
                     <div className="relative">
                         <div className="absolute inset-0 bg-green-400 rounded-xl blur-lg opacity-30 animate-pulse loading-glow"></div>
                         <img
-                            src="/White.png"
+                            src="/icons/White.png"
                             alt="Logo"
                             className="relative w-24 h-24 mx-auto rounded-xl shadow-2xl loading-float"
                             style={{

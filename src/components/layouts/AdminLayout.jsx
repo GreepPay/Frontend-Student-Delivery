@@ -77,7 +77,7 @@ const AdminLayout = ({ children }) => {
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-gray-200 bg-white">
                     <div className="flex items-center">
                         <img
-                            src="/White.png"
+                            src="/icons/White.png"
                             alt="Student Delivery Logo"
                             className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl shadow-lg"
                         />

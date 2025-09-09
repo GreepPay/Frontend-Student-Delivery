@@ -73,7 +73,7 @@ const Avatar = ({ user, profile, size = 'md', className = '', showVerifiedBadge 
         return (
             <div className={`${sizeClasses[size]} rounded-full overflow-hidden relative ${className}`}>
                 <img
-                    src="/White.png"
+                    src="/icons/White.png"
                     alt="Admin Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -393,7 +393,7 @@ const OTPVerification = () => {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <img
-                        src="/White.png"
+                        src="/icons/White.png"
                         alt="Logo"
                         className="w-12 h-12 mx-auto mb-4 rounded-lg shadow-sm"
                     />
