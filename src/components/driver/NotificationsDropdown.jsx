@@ -375,7 +375,7 @@ const NotificationsDropdown = () => {
             {isOpen && (
                 <div
                     ref={dropdownRef}
-                    className="absolute mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[80vh] overflow-hidden sm:right-0 sm:left-auto right-0 left-4 sm:left-auto sm:w-80 lg:w-96 hidden sm:block"
+                    className="absolute mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[80vh] overflow-hidden sm:right-0 sm:left-auto right-0 left-4 sm:w-80 lg:w-96 hidden sm:block"
                 >
                     <div className="p-3 sm:p-4 border-b border-gray-200">
                         <div className="flex items-center justify-between">

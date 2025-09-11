@@ -282,14 +282,19 @@ self.addEventListener('push', (event) => {
                     }
                 ]
             };
-        } else if (data.type === 'delivery') {
+        } else if (data.type === 'delivery' || data.type === 'delivery_broadcast') {
             // Delivery notification
+            const deliveryCode = data.deliveryCode || 'Unknown';
+            const pickupLocation = data.pickupLocation || 'Unknown location';
+            const fee = data.fee || 0;
+
             options = {
                 ...options,
-                title: data.title || 'New Delivery',
-                body: data.body || 'You have a new delivery opportunity!',
-                tag: 'delivery-assigned',
-                requireInteraction: false,
+                title: data.title || `🚚 New Delivery - ${deliveryCode}`,
+                body: data.body || `From: ${pickupLocation}\nFee: ₺${fee}\nTap to view details`,
+                tag: 'delivery-broadcast',
+                requireInteraction: true, // Make delivery notifications require interaction
+                vibrate: [200, 100, 200, 100, 200], // More prominent vibration pattern
                 actions: [
                     {
                         action: 'explore',

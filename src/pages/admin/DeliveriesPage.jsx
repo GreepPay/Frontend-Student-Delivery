@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
-    PlusIcon, MagnifyingGlassIcon, FunnelIcon, ArrowPathIcon,
+    PlusIcon, FunnelIcon, ArrowPathIcon,
     EyeIcon, PencilIcon, TrashIcon, XMarkIcon, TruckIcon,
-    CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, PhoneIcon,
+    PhoneIcon,
     UserIcon, MegaphoneIcon, UserPlusIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '../../components/common/ToastProvider';
@@ -23,6 +23,41 @@ import SearchableDropdown from '../../components/common/SearchableDropdown';
 const DeliveriesPage = () => {
     const location = useLocation();
     const { showSuccess, showError, showInfo } = useToast();
+
+    // Send push notification to drivers for new delivery
+    const sendDeliveryPushNotification = async (deliveryData) => {
+        try {
+            console.log('📱 Sending delivery push notification:', deliveryData);
+
+            // Send push notification via API to backend
+            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/send-delivery-notification`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    deliveryId: deliveryData._id,
+                    deliveryCode: deliveryData.deliveryCode,
+                    pickupLocation: deliveryData.pickupLocation,
+                    deliveryLocation: deliveryData.deliveryLocation,
+                    fee: deliveryData.fee,
+                    customerName: deliveryData.customerName,
+                    priority: deliveryData.priority || 'normal',
+                    broadcastRadius: deliveryData.broadcastRadius || 10,
+                    type: 'delivery_broadcast'
+                })
+            });
+
+            if (response.ok) {
+                console.log('✅ Delivery push notification sent successfully');
+            } else {
+                console.error('❌ Failed to send delivery push notification:', response.status);
+            }
+        } catch (error) {
+            console.error('❌ Error sending delivery push notification:', error);
+        }
+    };
 
     // Helper function to format payment method for display
     const formatPaymentMethod = (paymentMethod) => {
@@ -93,7 +128,6 @@ const DeliveriesPage = () => {
     const [broadcastFilter, setBroadcastFilter] = useState('all');
     const [lastRefresh, setLastRefresh] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -689,6 +723,13 @@ const DeliveriesPage = () => {
                         createdAt: result.data.createdAt,
                         broadcastEndTime: new Date(Date.now() + (formData.broadcastDuration || 60) * 1000).toISOString()
                     });
+
+                    // Send push notification to all eligible drivers
+                    try {
+                        await sendDeliveryPushNotification(result.data);
+                    } catch (error) {
+                        console.error('Failed to send push notification:', error);
+                    }
                 }
             } else {
                 console.error('Failed to create delivery:', result);

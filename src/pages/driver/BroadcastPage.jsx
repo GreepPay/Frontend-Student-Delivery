@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { capitalizeName } from '../../utils/nameUtils';
 import {
     MegaphoneIcon,
     ClockIcon,
@@ -7,7 +6,6 @@ import {
     UserIcon,
     PhoneIcon,
     CheckCircleIcon,
-    ArrowPathIcon,
     TruckIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
@@ -18,7 +16,6 @@ import { useToast } from '../../components/common/ToastProvider';
 
 import { useSystemSettings } from '../../context/SystemSettingsContext';
 import BroadcastSkeleton from '../../components/common/BroadcastSkeleton';
-import { useDeliveryBroadcast } from '../../components/driver/DeliveryBroadcastProvider';
 import { useBroadcasts } from '../../context/BroadcastContext';
 
 
@@ -26,7 +23,7 @@ const BroadcastPage = () => {
     const { formatCurrency } = useSystemSettings();
     const { user } = useAuth();
     const { showSuccess, showError } = useToast();
-    const { broadcasts, loading, fetchBroadcasts, addNewBroadcast } = useBroadcasts();
+    const { broadcasts, loading, fetchBroadcasts } = useBroadcasts();
     const [userLocation, setUserLocation] = useState(null);
     const [locationPermission, setLocationPermission] = useState('prompt');
     const [locationError, setLocationError] = useState(null);
@@ -66,38 +63,6 @@ const BroadcastPage = () => {
         return styles[priority] || styles.normal;
     };
 
-    // Test modal function
-    const testModal = () => {
-        console.log('🧪 Testing notification-based delivery modal');
-        // Test with the notification format you're receiving
-        const notificationMessage = "New delivery from https://www.google.com/maps/dir/My+Location/35.196171,33.370403 to https://www.google.com/maps/dir/My+Location/35.212753,33.306545";
-
-        const socket = socketService.getSocket();
-        if (socket) {
-            socket.emit('test-delivery-broadcast', {
-                deliveryId: 'test-delivery-' + Date.now(),
-                deliveryCode: 'TEST-' + Math.random().toString(36).substr(2, 9),
-                pickupLocation: 'Test Pickup Location',
-                deliveryLocation: 'Test Delivery Location',
-                customerName: 'Test Customer',
-                customerPhone: '+905551234567',
-                fee: 150,
-                paymentMethod: 'cash',
-                priority: 'normal',
-                notes: 'Test delivery for modal testing',
-                estimatedTime: new Date(Date.now() + 3600000).toISOString(),
-                pickupCoordinates: { lat: 35.196171, lng: 33.370403 },
-                deliveryCoordinates: { lat: 35.212753, lng: 33.306545 },
-                broadcastRadius: 10,
-                broadcastDuration: 60,
-                createdAt: new Date().toISOString(),
-                broadcastEndTime: new Date(Date.now() + 60000).toISOString()
-            });
-            showSuccess('Test delivery broadcast sent!');
-        } else {
-            showError('Socket not connected');
-        }
-    };
 
     // Location handling with retry limits - COMPLETELY REWRITTEN
     const getLocation = useCallback(() => {
@@ -251,21 +216,6 @@ const BroadcastPage = () => {
 
 
 
-    // Get status color
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'urgent':
-                return 'bg-red-100 text-red-800 border-red-200';
-            case 'high':
-                return 'bg-orange-100 text-orange-800 border-orange-200';
-            case 'normal':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'low':
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
 
 
 
@@ -458,338 +408,6 @@ const BroadcastPage = () => {
                         >
                             Manual Refresh
                         </button>
-                        <button
-                            onClick={() => {
-                                console.log('🧪 Test modal triggered');
-                                testModal();
-                            }}
-                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                            Test Modal
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🧪 Test broadcast triggered');
-                                // Manually trigger a broadcast event
-                                const testBroadcast = {
-                                    deliveryId: 'test-' + Date.now(),
-                                    deliveryCode: 'TEST-123456',
-                                    pickupLocation: 'Test Pickup Location',
-                                    deliveryLocation: 'Test Delivery Location',
-                                    customerName: 'Test Customer',
-                                    customerPhone: '+9056789766',
-                                    fee: 250,
-                                    paymentMethod: 'cash',
-                                    priority: 'urgent',
-                                    notes: 'This is a test broadcast',
-                                    broadcastDuration: 60,
-                                    broadcastEndTime: new Date(Date.now() + 60000).toISOString()
-                                };
-
-                                // Emit the event to test the system
-                                const socket = socketService.getSocket();
-                                if (socket) {
-                                    socket.emit('test-delivery-broadcast', testBroadcast);
-                                }
-
-                                // Also add directly to context
-                                addNewBroadcast(testBroadcast);
-                            }}
-                            className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                        >
-                            Test Broadcast
-                        </button>
-                        <button
-                            onClick={async () => {
-                                console.log('🧪 Manual API fetch triggered');
-                                try {
-                                    // Direct API call to see what's returned
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/delivery/broadcast/active?lat=${userLocation?.lat}&lng=${userLocation?.lng}`, {
-                                        headers: {
-                                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-
-                                    const data = await response.json();
-                                    console.log('🧪 Direct API response:', data);
-                                    console.log('🧪 Response status:', response.status);
-                                    console.log('🧪 Response headers:', response.headers);
-
-                                    if (data.success && data.data?.broadcasts) {
-                                        console.log('🧪 Found broadcasts:', data.data.broadcasts);
-                                        // Add them to the context
-                                        data.data.broadcasts.forEach(broadcast => {
-                                            addNewBroadcast(broadcast);
-                                        });
-                                    } else {
-                                        console.log('🧪 No broadcasts found or API error');
-                                    }
-                                } catch (error) {
-                                    console.error('🧪 API fetch error:', error);
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
-                        >
-                            Fetch API
-                        </button>
-                        <button
-                            onClick={async () => {
-                                console.log('🧪 Creating real delivery broadcast');
-                                try {
-                                    // Create a real delivery that will be broadcast
-                                    const deliveryData = {
-                                        pickupLocation: 'EMU Campus',
-                                        deliveryLocation: 'Terminal/City Center',
-                                        pickupLocationDescription: 'Main entrance near the library',
-                                        deliveryLocationDescription: 'Near the mosque, red building',
-                                        customerName: 'Real Customer',
-                                        customerPhone: '+905338481175',
-                                        fee: 300,
-                                        paymentMethod: 'cash',
-                                        priority: 'normal',
-                                        notes: 'This is a real delivery for testing broadcasts',
-                                        estimatedTime: new Date(Date.now() + 3600000).toISOString(),
-                                        useAutoBroadcast: true,
-                                        broadcastRadius: 10,
-                                        broadcastDuration: 120,
-                                        pickupLocationLink: 'https://www.google.com/maps/place/EMU/@35.1255,33.3095,15z/',
-                                        deliveryLocationLink: 'https://www.google.com/maps/place/Terminal/@35.1856,33.3823,15z/'
-                                    };
-
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/deliveries`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify(deliveryData)
-                                    });
-
-                                    const result = await response.json();
-                                    console.log('🧪 Create delivery response:', result);
-
-                                    if (result.success) {
-                                        console.log('🧪 Real delivery created successfully:', result.data);
-                                        // Wait a moment then fetch broadcasts
-                                        setTimeout(() => {
-                                            fetchBroadcasts();
-                                        }, 2000);
-                                    } else {
-                                        console.error('🧪 Failed to create delivery:', result);
-                                    }
-                                } catch (error) {
-                                    console.error('🧪 Create delivery error:', error);
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                        >
-                            Create Real Delivery
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                console.log('🧪 Rate limiting removed');
-                                fetchBroadcasts();
-                            }}
-                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                            Rate Limiting Disabled
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🧪 Testing delivery broadcast modal');
-                                // Import and use the delivery broadcast context
-                                const { useDeliveryBroadcast } = require('../../components/driver/DeliveryBroadcastProvider');
-                                // This will be handled by the context provider
-                                const socket = socketService.getSocket();
-                                if (socket) {
-                                    const testDelivery = {
-                                        deliveryId: 'test-modal-' + Date.now(),
-                                        deliveryCode: 'TEST-MODAL-123',
-                                        pickupLocation: 'Test Pickup Location',
-                                        deliveryLocation: 'Test Delivery Location',
-                                        customerName: 'Test Customer',
-                                        customerPhone: '+9056789766',
-                                        fee: 250,
-                                        driverEarning: 200,
-                                        companyEarning: 50,
-                                        paymentMethod: 'cash',
-                                        priority: 'urgent',
-                                        notes: 'Testing delivery modal system',
-                                        estimatedTime: new Date(Date.now() + 3600000).toISOString(),
-                                        broadcastDuration: 60,
-                                        pickupLocationDescription: 'Test pickup description',
-                                        deliveryLocationDescription: 'Test delivery description'
-                                    };
-                                    socket.emit('test-delivery-broadcast', testDelivery);
-                                    console.log('🧪 Emitted test delivery broadcast:', testDelivery);
-                                } else {
-                                    console.error('🧪 Socket not connected');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-pink-600 text-white rounded hover:bg-pink-700"
-                        >
-                            Test Modal
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🧪 Testing notification-based delivery modal');
-                                // Test with the notification format you're receiving
-                                const notificationMessage = "New delivery from https://www.google.com/maps/@35.196171,33.370403,15z to https://www.google.com/maps/@35.212753,33.306545,15z";
-
-                                const socket = socketService.getSocket();
-                                if (socket) {
-                                    // Emit the notification event
-                                    socket.emit('notification-delivery', notificationMessage);
-                                    console.log('🧪 Emitted notification delivery:', notificationMessage);
-                                } else {
-                                    console.error('🧪 Socket not connected');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                        >
-                            Test Notification
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🔌 Manual socket connection attempt');
-                                if (user) {
-                                    console.log('🔌 Connecting socket for user:', user._id || user.id, 'type:', user.userType || user.role);
-                                    socketService.connect(user._id || user.id, user.userType || user.role);
-
-                                    // Check connection after 2 seconds
-                                    setTimeout(() => {
-                                        const connected = socketService.isConnected();
-                                        console.log('🔌 Socket connection result:', connected);
-                                        if (connected) {
-                                            // Socket connected silently
-                                        } else {
-                                            showError('Socket connection failed!');
-                                        }
-                                    }, 2000);
-                                } else {
-                                    console.error('🔌 No user available for socket connection');
-                                    showError('No user available for socket connection');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                        >
-                            Connect Socket
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🔌 Manual socket authentication attempt');
-                                if (user && socketService.isConnected()) {
-                                    console.log('🔌 Authenticating socket for user:', user._id || user.id, 'type:', user.userType || user.role);
-                                    const success = socketService.authenticate(user._id || user.id, user.userType || user.role);
-
-                                    if (success) {
-                                        // Authentication sent silently
-                                    } else {
-                                        showError('Authentication failed - socket not connected');
-                                    }
-                                } else if (!socketService.isConnected()) {
-                                    showError('Socket not connected. Connect first.');
-                                } else {
-                                    showError('No user available for authentication');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            Authenticate
-                        </button>
-                        <button
-                            onClick={async () => {
-                                console.log('🔍 Checking backend socket status');
-                                try {
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/socket/status`, {
-                                        headers: {
-                                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-
-                                    const data = await response.json();
-                                    console.log('🔍 Backend socket status:', data);
-
-                                    if (data.success) {
-                                        const connectedUsers = data.data?.connectedUsers || 0;
-                                        // User count updated silently
-
-                                        if (connectedUsers > 0) {
-                                            console.log('✅ Authentication working! Backend recognizes the connection.');
-                                        } else {
-                                            console.log('❌ Authentication failed! Backend shows 0 connected users.');
-                                        }
-                                    } else {
-                                        showError('Failed to get backend socket status');
-                                    }
-                                } catch (error) {
-                                    console.error('🔍 Error checking backend socket status:', error);
-                                    showError('Error checking backend status');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                        >
-                            Check Backend
-                        </button>
-                        <button
-                            onClick={() => {
-                                console.log('🔍 Checking authentication status');
-                                const connected = socketService.isConnected();
-                                const authenticated = socketService.isAuthenticated();
-
-                                console.log('🔍 Authentication status:', { connected, authenticated });
-
-                                if (authenticated) {
-                                    showSuccess('✅ Socket is connected and authenticated!');
-                                } else if (connected) {
-                                    showError('⚠️ Socket connected but not authenticated. Try authenticating.');
-                                } else {
-                                    showError('❌ Socket not connected. Connect first.');
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
-                        >
-                            Check Auth
-                        </button>
-
-                        <button
-                            onClick={async () => {
-                                console.log('🧪 Triggering broadcast processing');
-                                try {
-                                    // Trigger the background job that processes broadcasts
-                                    const response = await fetch(`${process.env.REACT_APP_API_URL}/background-jobs/trigger-broadcast-processing`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-
-                                    const result = await response.json();
-                                    console.log('🧪 Broadcast processing response:', result);
-
-                                    if (result.success) {
-                                        console.log('🧪 Broadcast processing triggered successfully');
-                                        // Wait a moment then fetch broadcasts
-                                        setTimeout(() => {
-                                            fetchBroadcasts();
-                                        }, 3000);
-                                    } else {
-                                        console.error('🧪 Failed to trigger broadcast processing:', result);
-                                    }
-                                } catch (error) {
-                                    console.error('🧪 Broadcast processing error:', error);
-                                }
-                            }}
-                            className="px-3 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700"
-                        >
-                            Process Broadcasts
-                        </button>
-                    </div>
-                </div> */}
 
                 {/* Available Deliveries Header */}
                 {/* Location Info */}

@@ -18,6 +18,7 @@ import apiService from '../../services/api';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
 import pwaService from '../../services/pwaService';
+import ConfirmationModal from './ConfirmationModal';
 import MessageImageUpload from './MessageImageUpload';
 import messageImageService from '../../services/messageImageService';
 
@@ -33,6 +34,8 @@ const MultiDriverMessaging = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [imageUploadResetTrigger, setImageUploadResetTrigger] = useState(0);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [conversationToDelete, setConversationToDelete] = useState(null);
     const messagesEndRef = useRef(null);
     const { user } = useAuth();
     const { showError } = useToast();
@@ -230,7 +233,7 @@ const MultiDriverMessaging = () => {
                 showError('Authentication required. Please log in again.');
             }
         }
-    }, [showError]);
+    }, [showError, activeConversation]);
 
     // Load messages for a specific conversation
     const loadMessages = useCallback(async (conversationId) => {
@@ -566,7 +569,7 @@ const MultiDriverMessaging = () => {
             // Show push notification with message preview using PWA service
             pwaService.showMessageNotification(data.driverName || 'Driver', data.message);
         }
-    }, [user, activeConversation, showError]);
+    }, [user, activeConversation, showError, messages.length]);
 
     // Handle typing indicators
     const handleTyping = useCallback((data) => {
@@ -635,16 +638,19 @@ const MultiDriverMessaging = () => {
 
     // Delete conversation
     const deleteConversation = async (conversationId) => {
-        if (!window.confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
-            return;
-        }
+        setConversationToDelete(conversationId);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDeleteConversation = async () => {
+        if (!conversationToDelete) return;
 
         try {
-            const response = await apiService.deleteConversation(conversationId);
+            const response = await apiService.deleteConversation(conversationToDelete);
             if (response.success) {
 
                 // Close the conversation if it's currently active
-                if (activeConversation && activeConversation.id === conversationId) {
+                if (activeConversation && activeConversation.id === conversationToDelete) {
                     setActiveConversation(null);
                     setMessages([]);
                     console.log('💬 MultiDriverMessaging: Closed deleted conversation');
@@ -658,6 +664,9 @@ const MultiDriverMessaging = () => {
         } catch (error) {
             console.error('Error deleting conversation:', error);
             showError('Failed to delete conversation');
+        } finally {
+            setShowDeleteConfirm(false);
+            setConversationToDelete(null);
         }
     };
 
@@ -1471,6 +1480,21 @@ const MultiDriverMessaging = () => {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => {
+                    setShowDeleteConfirm(false);
+                    setConversationToDelete(null);
+                }}
+                onConfirm={confirmDeleteConversation}
+                title="Delete Conversation"
+                message="Are you sure you want to delete this conversation? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+            />
         </div>
     );
 };

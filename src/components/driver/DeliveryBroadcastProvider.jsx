@@ -3,6 +3,8 @@ import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
 import DeliveryBroadcastModal from './DeliveryBroadcastModal';
 import { useAuth } from '../../context/AuthContext';
+import pwaService from '../../services/pwaService';
+import notificationPermissionService from '../../services/notificationPermissionService';
 
 const DeliveryBroadcastContext = createContext();
 
@@ -199,6 +201,47 @@ export const DeliveryBroadcastProvider = ({ children }) => {
         }
 
         console.log('🔌 DeliveryBroadcastProvider: Setting up socket listeners for user:', user._id || user.id);
+
+        // Request notification permissions for drivers
+        const requestNotificationPermissions = async () => {
+            try {
+                const permissionGranted = await notificationPermissionService.enforcePermission('delivery', 'medium');
+                if (permissionGranted) {
+                    console.log('✅ Notification permissions granted for delivery notifications');
+
+                    // Subscribe to push notifications
+                    const subscription = await pwaService.subscribeToPushNotifications();
+                    if (subscription) {
+                        console.log('✅ Push notification subscription successful');
+
+                        // Send subscription to backend
+                        try {
+                            await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/driver/push-subscription`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    subscription: subscription,
+                                    userId: user._id || user.id
+                                })
+                            });
+                            console.log('✅ Push subscription sent to backend');
+                        } catch (error) {
+                            console.error('❌ Failed to send push subscription to backend:', error);
+                        }
+                    }
+                } else {
+                    console.log('⚠️ Notification permissions not granted');
+                }
+            } catch (error) {
+                console.error('❌ Error requesting notification permissions:', error);
+            }
+        };
+
+        // Request permissions when component mounts
+        requestNotificationPermissions();
 
         // Ensure socket is connected
         if (!socketService.isConnected()) {

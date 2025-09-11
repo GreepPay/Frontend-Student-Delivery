@@ -45,19 +45,93 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         const lastActivity = localStorage.getItem('lastActivity');
 
-        if (!token || !lastActivity) return false;
+        if (!token) return false;
+
+        // If no lastActivity timestamp, create one (for existing sessions)
+        if (!lastActivity) {
+            console.log('🔄 No lastActivity found, creating new timestamp');
+            localStorage.setItem('lastActivity', Date.now().toString());
+            return true;
+        }
 
         const now = Date.now();
         const timeSinceLastActivity = now - parseInt(lastActivity);
 
         // Add buffer time to prevent edge case logouts
         const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
-        return timeSinceLastActivity < (SESSION_TIMEOUT + bufferTime);
+        const isValid = timeSinceLastActivity < (SESSION_TIMEOUT + bufferTime);
+
+        console.log('🕒 Session validation:', {
+            timeSinceLastActivity: Math.round(timeSinceLastActivity / (1000 * 60)), // minutes
+            sessionTimeout: Math.round(SESSION_TIMEOUT / (1000 * 60)), // minutes
+            isValid
+        });
+
+        return isValid;
     }, [SESSION_TIMEOUT]);
 
     const updateLastActivity = useCallback(() => {
         localStorage.setItem('lastActivity', Date.now().toString());
     }, []);
+
+    // Verify token with backend
+    const verifyTokenWithBackend = useCallback(async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return false;
+
+        try {
+            const response = await apiService.verifyToken();
+            return response.success;
+        } catch (error) {
+            console.log('🔒 Token verification failed:', error);
+            return false;
+        }
+    }, []);
+
+    // Restore session from localStorage with enhanced validation
+    const restoreSession = useCallback(async () => {
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+
+        if (!savedToken || !savedUser) {
+            console.log('ℹ️ No saved session found');
+            return false;
+        }
+
+        try {
+            const userData = JSON.parse(savedUser);
+            console.log('🔄 Attempting to restore session for:', userData.email);
+
+            // Check if session is valid locally first
+            if (!isSessionValid()) {
+                console.log('⏰ Session expired locally');
+                return false;
+            }
+
+            // Verify token with backend (with fallback for offline)
+            try {
+                const tokenValid = await verifyTokenWithBackend();
+                if (!tokenValid) {
+                    console.log('🔒 Token verification failed');
+                    return false;
+                }
+            } catch (error) {
+                console.log('⚠️ Token verification failed (network issue), proceeding with local validation');
+                // Continue with local validation if backend is unreachable
+            }
+
+            // Restore the session
+            setUser(userData);
+            setIsAuthenticated(true);
+            updateLastActivity();
+
+            console.log('✅ Session restored successfully');
+            return true;
+        } catch (error) {
+            console.error('❌ Error restoring session:', error);
+            return false;
+        }
+    }, [isSessionValid, verifyTokenWithBackend, updateLastActivity]);
 
     const resetInactivityTimer = useCallback(() => {
         updateLastActivity();
@@ -189,6 +263,47 @@ export const AuthProvider = ({ children }) => {
         }
     }, [user]);
 
+    // PWA visibility change handler
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && isAuthenticated) {
+                console.log('📱 PWA became active, updating activity timestamp');
+                updateLastActivity();
+
+                // Also verify session is still valid when app becomes active
+                if (!isSessionValid()) {
+                    console.log('⚠️ Session expired while app was inactive, logging out');
+                    logout(false, true);
+                }
+            }
+        };
+
+        const handleFocus = () => {
+            if (isAuthenticated) {
+                console.log('📱 App focused, updating activity timestamp');
+                updateLastActivity();
+            }
+        };
+
+        const handleBeforeUnload = () => {
+            if (isAuthenticated) {
+                console.log('📱 App closing, updating activity timestamp');
+                updateLastActivity();
+            }
+        };
+
+        // Listen for PWA visibility changes
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isAuthenticated, updateLastActivity, isSessionValid, logout]);
+
     // Initialize session once on mount - using global flag to prevent duplicates
     useEffect(() => {
         if (globalInitialized) {
@@ -196,49 +311,36 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        const initializeSession = () => {
+        const initializeSession = async () => {
             console.log('🔄 Initializing auth session (ONCE)...');
             globalInitialized = true; // Set global flag immediately
 
-            const savedToken = localStorage.getItem('token');
-            const savedUser = localStorage.getItem('user');
+            // Use the new restoreSession function
+            const sessionRestored = await restoreSession();
+            if (sessionRestored) {
+                console.log('🔄 Session restored, updating activity timestamp');
 
-            if (savedToken && savedUser && isSessionValid()) {
-                try {
-                    const userData = JSON.parse(savedUser);
-                    console.log('✅ Restoring valid session for:', userData.email);
+                // Initialize socket connection for restored session
+                const userData = JSON.parse(localStorage.getItem('user'));
+                if (userData && userData._id) {
+                    try {
+                        console.log('🔌 Attempting to connect socket for restored session:', userData._id, 'type:', userData.userType || userData.role);
+                        socketService.connect(userData._id, userData.userType || userData.role);
 
-                    setUser(userData);
-                    setIsAuthenticated(true);
-                    updateLastActivity();
-
-                    // Initialize socket connection for restored session
-                    if (userData._id) {
-                        try {
-                            console.log('🔌 Attempting to connect socket for restored session:', userData._id, 'type:', userData.userType || userData.role);
-                            socketService.connect(userData._id, userData.userType || userData.role);
-
-                            // Verify connection was established
-                            setTimeout(() => {
-                                if (socketService.isConnected()) {
-                                    console.log('✅ Socket connection verified for restored session:', userData._id);
-                                } else {
-                                    console.error('❌ Socket connection failed for restored session:', userData._id);
-                                    // Try to reconnect
-                                    console.log('🔄 Attempting socket reconnection for restored session...');
-                                    socketService.connect(userData._id, userData.userType || userData.role);
-                                }
-                            }, 1000);
-                        } catch (error) {
-                            console.warn('⚠️ Socket initialization failed for restored session:', error);
-                        }
+                        // Verify connection was established
+                        setTimeout(() => {
+                            if (socketService.isConnected()) {
+                                console.log('✅ Socket connection verified for restored session:', userData._id);
+                            } else {
+                                console.error('❌ Socket connection failed for restored session:', userData._id);
+                                // Try to reconnect
+                                console.log('🔄 Attempting socket reconnection for restored session...');
+                                socketService.connect(userData._id, userData.userType || userData.role);
+                            }
+                        }, 1000);
+                    } catch (error) {
+                        console.warn('⚠️ Socket initialization failed for restored session:', error);
                     }
-                } catch (error) {
-                    console.error('❌ Error parsing saved user data:', error);
-                    // Clear invalid data but don't redirect if on protected route
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('lastActivity');
                 }
             } else {
                 console.log('ℹ️ No valid session found');
@@ -252,7 +354,7 @@ export const AuthProvider = ({ children }) => {
         };
 
         initializeSession();
-    }, [isSessionValid, updateLastActivity]); // Include dependencies
+    }, [restoreSession]); // Include dependencies
 
     // Session timeout monitoring with improved logic
     useEffect(() => {

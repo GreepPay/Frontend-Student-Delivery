@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import NotificationsDropdown from '../driver/NotificationsDropdown';
 import Avatar from '../common/Avatar';
 import SoundPermissionModal from '../common/SoundPermissionModal';
-import NotificationPermissionModal from '../common/NotificationPermissionModal';
+import DriverNotificationPermissionModal from '../driver/DriverNotificationPermissionModal';
 import NotificationEnforcer from '../common/NotificationEnforcer';
 import GlobalSearch from '../common/GlobalSearch';
 import DriverMessageToAdmin from '../driver/DriverMessageToAdmin';
@@ -13,7 +13,6 @@ import usePointsNotification from '../../hooks/usePointsNotification';
 import { useNotificationPermission } from '../../hooks/useNotificationPermission';
 import PWAInstallButton from '../common/PWAInstallButton';
 import PWAStatus from '../common/PWAStatus';
-import PWANotification from '../common/PWANotification';
 import PWAUpdateNotification from '../common/PWAUpdateNotification';
 import apiService from '../../services/api';
 import {
@@ -392,14 +391,11 @@ const DriverLayout = ({ children }) => {
                         }}
                     />
 
-                    {/* Notification Permission Modal */}
-                    <NotificationPermissionModal
+                    {/* Driver Notification Permission Modal */}
+                    <DriverNotificationPermissionModal
                         isOpen={showNotificationModal}
                         onClose={hideNotificationModal}
                         onPermissionGranted={onNotificationPermissionGranted}
-                        forceShow={false}
-                        title="Enable Push Notifications"
-                        description="Stay updated with delivery assignments and important updates even when the app is closed."
                     />
 
                     {/* Points Notification */}

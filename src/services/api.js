@@ -280,6 +280,11 @@ class ApiService {
         return response.data;
     }
 
+    async verifyToken() {
+        const response = await api.get('/auth/verify-token');
+        return response.data;
+    }
+
     // Admin endpoints
     async getDashboardStats() {
         const response = await api.get('/admin/dashboard');

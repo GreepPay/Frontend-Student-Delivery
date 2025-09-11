@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClockIcon, FireIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import formMemory from '../../utils/formMemory';
+import ConfirmationModal from './ConfirmationModal';
 
 const FormMemoryPanel = ({
     formType,
@@ -11,14 +12,7 @@ const FormMemoryPanel = ({
 }) => {
     const [recentEntries, setRecentEntries] = useState([]);
     const [stats, setStats] = useState(null);
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    useEffect(() => {
-        loadRecentEntries();
-        if (showStats) {
-            loadStats();
-        }
-    }, [formType, showStats]);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     const loadRecentEntries = () => {
         const entries = formMemory.getRecentFormData(formType, maxEntries);
@@ -30,6 +24,13 @@ const FormMemoryPanel = ({
         setStats(memoryStats);
     };
 
+    useEffect(() => {
+        loadRecentEntries();
+        if (showStats) {
+            loadStats();
+        }
+    }, [formType, showStats, loadRecentEntries]);
+
     const handleFillForm = (entry) => {
         if (onFillForm) {
             onFillForm(entry);
@@ -37,13 +38,16 @@ const FormMemoryPanel = ({
     };
 
     const handleClearMemory = () => {
-        if (window.confirm('Are you sure you want to clear all form memory? This action cannot be undone.')) {
-            formMemory.clearMemory(formType);
-            loadRecentEntries();
-            if (showStats) {
-                loadStats();
-            }
+        setShowClearConfirm(true);
+    };
+
+    const confirmClearMemory = () => {
+        formMemory.clearMemory(formType);
+        loadRecentEntries();
+        if (showStats) {
+            loadStats();
         }
+        setShowClearConfirm(false);
     };
 
     const handleAddTestData = () => {
@@ -205,6 +209,18 @@ const FormMemoryPanel = ({
                     <span>{recentEntries.length} of {stats?.forms[formType]?.historyEntries || 0} entries</span>
                 </div>
             </div>
+
+            {/* Clear Memory Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showClearConfirm}
+                onClose={() => setShowClearConfirm(false)}
+                onConfirm={confirmClearMemory}
+                title="Clear Form Memory"
+                message="Are you sure you want to clear all form memory? This action cannot be undone."
+                confirmText="Clear"
+                cancelText="Cancel"
+                type="warning"
+            />
         </div>
     );
 };
