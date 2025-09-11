@@ -50,7 +50,9 @@ export const AuthProvider = ({ children }) => {
         const now = Date.now();
         const timeSinceLastActivity = now - parseInt(lastActivity);
 
-        return timeSinceLastActivity < SESSION_TIMEOUT;
+        // Add buffer time to prevent edge case logouts
+        const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+        return timeSinceLastActivity < (SESSION_TIMEOUT + bufferTime);
     }, [SESSION_TIMEOUT]);
 
     const updateLastActivity = useCallback(() => {
@@ -252,7 +254,7 @@ export const AuthProvider = ({ children }) => {
         initializeSession();
     }, [isSessionValid, updateLastActivity]); // Include dependencies
 
-    // Session timeout monitoring (re-enabled with better logic)
+    // Session timeout monitoring with improved logic
     useEffect(() => {
         if (!isAuthenticated || !globalInitialized) return;
 
@@ -260,14 +262,23 @@ export const AuthProvider = ({ children }) => {
 
         const checkSessionTimeout = () => {
             const lastActivity = localStorage.getItem('lastActivity');
-            if (!lastActivity) return;
+            const token = localStorage.getItem('token');
+
+            if (!lastActivity || !token) {
+                console.log('⏰ No session data found - logging out');
+                logout(true, true);
+                return;
+            }
 
             const now = Date.now();
             const timeSinceLastActivity = now - parseInt(lastActivity);
             const remainingTime = SESSION_TIMEOUT - timeSinceLastActivity;
 
-            if (remainingTime <= 0) {
-                console.log('⏰ Session expired - logging out');
+            // Add buffer time to prevent premature logouts
+            const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+
+            if (remainingTime <= -bufferTime) {
+                console.log('⏰ Session expired (with buffer) - logging out');
                 logout(true, true); // Force redirect on session timeout
             } else if (remainingTime <= WARNING_TIME && !sessionWarning) {
                 console.log('⚠️ Session warning - showing timeout warning');
@@ -276,11 +287,12 @@ export const AuthProvider = ({ children }) => {
             }
         };
 
-        const interval = setInterval(checkSessionTimeout, 30000); // Check every 30 seconds instead of every second
+        // Check less frequently to reduce false positives
+        const interval = setInterval(checkSessionTimeout, 60000); // Check every 1 minute
         return () => clearInterval(interval);
     }, [isAuthenticated, logout, sessionWarning, SESSION_TIMEOUT, WARNING_TIME]);
 
-    // Activity listeners (optimized)
+    // Activity listeners (optimized with better tracking)
     useEffect(() => {
         if (!isAuthenticated || !globalInitialized) return;
 
@@ -292,22 +304,36 @@ export const AuthProvider = ({ children }) => {
         let lastUpdate = 0;
         const throttledHandleActivity = () => {
             const now = Date.now();
-            if (now - lastUpdate > 60000) { // Update at most once per minute
+            if (now - lastUpdate > 30000) { // Update at most once per 30 seconds
                 lastUpdate = now;
                 handleActivity();
             }
         };
 
-        const events = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+        // More comprehensive event list for better activity detection
+        const events = [
+            'mousedown', 'mousemove', 'keypress', 'keydown', 'scroll',
+            'touchstart', 'touchmove', 'click', 'focus', 'blur'
+        ];
 
         events.forEach(event => {
             document.addEventListener(event, throttledHandleActivity, true);
         });
 
+        // Also track visibility changes to handle app switching
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                throttledHandleActivity();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
             events.forEach(event => {
                 document.removeEventListener(event, throttledHandleActivity, true);
             });
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [isAuthenticated, resetInactivityTimer]);
 

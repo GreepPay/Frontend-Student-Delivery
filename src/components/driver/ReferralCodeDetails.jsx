@@ -117,7 +117,7 @@ const ReferralCodeDetails = ({ referralData, configData }) => {
                                             {usage.driverName || 'New Driver'}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            Used on {new Date(usage.usedAt).toLocaleDateString()}
+                                            Used on {new Date(usage.usedAt).toLocaleDateString('en-US')}
                                         </p>
                                     </div>
                                 </div>

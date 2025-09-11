@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { capitalizeName } from '../../utils/nameUtils';
 import { XMarkIcon, UserIcon, EnvelopeIcon, ShieldCheckIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 const AdminUserModal = ({ isOpen, onClose, onSubmit, mode, admin }) => {
     const [formData, setFormData] = useState({
@@ -115,7 +116,11 @@ const AdminUserModal = ({ isOpen, onClose, onSubmit, mode, admin }) => {
         e.preventDefault();
 
         if (validateForm()) {
+            console.log('📧 AdminUserModal: Submitting form data:', formData);
             onSubmit(formData);
+        } else {
+            console.warn('📧 AdminUserModal: Form validation failed');
+            toast.error('Please fix the form errors before submitting');
         }
     };
 

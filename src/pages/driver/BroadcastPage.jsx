@@ -540,7 +540,7 @@ const BroadcastPage = () => {
                                     // Create a real delivery that will be broadcast
                                     const deliveryData = {
                                         pickupLocation: 'EMU Campus',
-                                        deliveryLocation: 'Kucuk Center',
+                                        deliveryLocation: 'Terminal/City Center',
                                         pickupLocationDescription: 'Main entrance near the library',
                                         deliveryLocationDescription: 'Near the mosque, red building',
                                         customerName: 'Real Customer',
@@ -554,7 +554,7 @@ const BroadcastPage = () => {
                                         broadcastRadius: 10,
                                         broadcastDuration: 120,
                                         pickupLocationLink: 'https://www.google.com/maps/place/EMU/@35.1255,33.3095,15z/',
-                                        deliveryLocationLink: 'https://www.google.com/maps/place/Kucuk/@35.1833,33.3667,15z/'
+                                        deliveryLocationLink: 'https://www.google.com/maps/place/Terminal/@35.1856,33.3823,15z/'
                                     };
 
                                     const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/deliveries`, {

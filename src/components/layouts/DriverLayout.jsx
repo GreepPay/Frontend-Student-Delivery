@@ -4,10 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import NotificationsDropdown from '../driver/NotificationsDropdown';
 import Avatar from '../common/Avatar';
 import SoundPermissionModal from '../common/SoundPermissionModal';
+import NotificationPermissionModal from '../common/NotificationPermissionModal';
+import NotificationEnforcer from '../common/NotificationEnforcer';
 import GlobalSearch from '../common/GlobalSearch';
 import DriverMessageToAdmin from '../driver/DriverMessageToAdmin';
 import PointsNotification from '../common/PointsNotification';
 import usePointsNotification from '../../hooks/usePointsNotification';
+import { useNotificationPermission } from '../../hooks/useNotificationPermission';
 import PWAInstallButton from '../common/PWAInstallButton';
 import PWAStatus from '../common/PWAStatus';
 import PWANotification from '../common/PWANotification';
@@ -67,6 +70,13 @@ const DriverLayout = ({ children }) => {
     const { user, profile, logout, updateProfile } = useAuth();
     const pointsNotification = usePointsNotification();
     const { notification, hidePointsNotification } = pointsNotification;
+
+    // Notification permission management
+    const {
+        showModal: showNotificationModal,
+        hideModal: hideNotificationModal,
+        handlePermissionGranted: onNotificationPermissionGranted
+    } = useNotificationPermission('driver', 'medium');
 
     const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -351,7 +361,13 @@ const DriverLayout = ({ children }) => {
                         {/* Main content area */}
                         <main className="flex-1 overflow-y-auto">
                             <div className="p-4 sm:p-6">
-                                {children}
+                                <NotificationEnforcer
+                                    context="driver"
+                                    enforcementLevel="medium"
+                                    showWarning={true}
+                                >
+                                    {children}
+                                </NotificationEnforcer>
                             </div>
                         </main>
                     </div>
@@ -376,6 +392,16 @@ const DriverLayout = ({ children }) => {
                         }}
                     />
 
+                    {/* Notification Permission Modal */}
+                    <NotificationPermissionModal
+                        isOpen={showNotificationModal}
+                        onClose={hideNotificationModal}
+                        onPermissionGranted={onNotificationPermissionGranted}
+                        forceShow={false}
+                        title="Enable Push Notifications"
+                        description="Stay updated with delivery assignments and important updates even when the app is closed."
+                    />
+
                     {/* Points Notification */}
                     <PointsNotification
                         points={notification.points}
@@ -394,6 +420,7 @@ const DriverLayout = ({ children }) => {
                             <PWAStatus showDetails={false} />
                         </div>
                     )}
+
                 </div>
             </PointsNotificationContext.Provider>
         </DriverStatusContext.Provider>

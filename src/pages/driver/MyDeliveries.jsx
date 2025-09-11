@@ -866,7 +866,7 @@ const MyDeliveries = () => {
                                         <div className="p-2 bg-gray-50 rounded-lg">
                                             <CalendarDaysIcon className="w-4 h-4 text-gray-400 mx-auto mb-1" />
                                             <p className="text-xs text-gray-600">Date</p>
-                                            <p className="text-xs font-medium text-gray-900">{new Date(delivery.createdAt).toLocaleDateString()}</p>
+                                            <p className="text-xs font-medium text-gray-900">{new Date(delivery.createdAt).toLocaleDateString('en-US')}</p>
                                         </div>
                                         <div className="p-2 bg-gray-50 rounded-lg">
                                             <TruckIcon className="w-4 h-4 text-gray-400 mx-auto mb-1" />

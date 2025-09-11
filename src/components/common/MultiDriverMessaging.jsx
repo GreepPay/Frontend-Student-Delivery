@@ -17,6 +17,7 @@ import { useToast } from './ToastProvider';
 import apiService from '../../services/api';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
+import pwaService from '../../services/pwaService';
 import MessageImageUpload from './MessageImageUpload';
 import messageImageService from '../../services/messageImageService';
 
@@ -561,6 +562,9 @@ const MultiDriverMessaging = () => {
             showError(`🚨 Emergency from ${data.driverName}: ${data.message}`, 8000);
         } else {
             soundService.playSound('notification');
+
+            // Show push notification with message preview using PWA service
+            pwaService.showMessageNotification(data.driverName || 'Driver', data.message);
         }
     }, [user, activeConversation, showError]);
 
@@ -696,7 +700,7 @@ const MultiDriverMessaging = () => {
             if (hours < 24) return `${hours}h ago`;
             if (days < 7) return `${days}d ago`;
 
-            return date.toLocaleDateString();
+            return date.toLocaleDateString('en-US');
         } catch (error) {
             return 'Invalid time';
         }
@@ -1201,31 +1205,47 @@ const MultiDriverMessaging = () => {
                                     )}
                                 </div>
 
-                                {/* Mobile Message Input */}
-                                <div className="p-3 border-t border-gray-200">
-                                    <div className="flex space-x-2">
-                                        <MessageImageUpload
-                                            onImageSelect={handleImageSelect}
-                                            onImageRemove={handleImageRemove}
-                                            isUploading={isUploadingImage}
-                                            resetTrigger={imageUploadResetTrigger}
-                                        />
-                                        <input
-                                            type="text"
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            onKeyPress={handleKeyPress}
-                                            placeholder="Type your message..."
-                                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                            disabled={isLoading || isUploadingImage}
-                                        />
-                                        <button
-                                            onClick={handleSendMessage}
-                                            disabled={(!newMessage.trim() && !selectedImage) || isLoading || isUploadingImage}
-                                            className="px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1 flex-shrink-0"
-                                        >
-                                            <PaperAirplaneIcon className="h-4 w-4" />
-                                        </button>
+                                {/* Mobile Message Input - Fixed Size */}
+                                <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-white">
+                                    <div className="flex items-end space-x-2 max-w-full">
+                                        <div className="flex-shrink-0">
+                                            <MessageImageUpload
+                                                onImageSelect={handleImageSelect}
+                                                onImageRemove={handleImageRemove}
+                                                isUploading={isUploadingImage}
+                                                resetTrigger={imageUploadResetTrigger}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <input
+                                                type="text"
+                                                value={newMessage}
+                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                onKeyPress={handleKeyPress}
+                                                placeholder="Type your message..."
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                                                style={{
+                                                    minHeight: '40px',
+                                                    maxHeight: '40px',
+                                                    height: '40px'
+                                                }}
+                                                disabled={isLoading || isUploadingImage}
+                                            />
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <button
+                                                onClick={handleSendMessage}
+                                                disabled={(!newMessage.trim() && !selectedImage) || isLoading || isUploadingImage}
+                                                className="px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                                                style={{
+                                                    minHeight: '40px',
+                                                    maxHeight: '40px',
+                                                    height: '40px'
+                                                }}
+                                            >
+                                                <PaperAirplaneIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1388,37 +1408,53 @@ const MultiDriverMessaging = () => {
                                         <div ref={messagesEndRef} />
                                     </div>
 
-                                    {/* Message Input */}
-                                    <div className="p-4 border-t border-gray-200">
-                                        <div className="flex space-x-2">
-                                            <MessageImageUpload
-                                                onImageSelect={handleImageSelect}
-                                                onImageRemove={handleImageRemove}
-                                                isUploading={isUploadingImage}
-                                                resetTrigger={imageUploadResetTrigger}
-                                            />
-                                            <input
-                                                type="text"
-                                                value={newMessage}
-                                                onChange={handleTypingChange}
-                                                onKeyPress={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        handleSendMessage();
-                                                    }
-                                                }}
-                                                placeholder="Type your message..."
-                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                disabled={isLoading || isUploadingImage}
-                                            />
-                                            <button
-                                                onClick={handleSendMessage}
-                                                disabled={(!newMessage.trim() && !selectedImage) || isLoading || isUploadingImage}
-                                                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-                                            >
-                                                <PaperAirplaneIcon className="h-4 w-4" />
-                                                <span>Send</span>
-                                            </button>
+                                    {/* Message Input - Fixed Size Container */}
+                                    <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+                                        <div className="flex items-end space-x-2 max-w-full">
+                                            <div className="flex-shrink-0">
+                                                <MessageImageUpload
+                                                    onImageSelect={handleImageSelect}
+                                                    onImageRemove={handleImageRemove}
+                                                    isUploading={isUploadingImage}
+                                                    resetTrigger={imageUploadResetTrigger}
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <input
+                                                    type="text"
+                                                    value={newMessage}
+                                                    onChange={handleTypingChange}
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            handleSendMessage();
+                                                        }
+                                                    }}
+                                                    placeholder="Type your message..."
+                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                                                    style={{
+                                                        minHeight: '40px',
+                                                        maxHeight: '40px',
+                                                        height: '40px'
+                                                    }}
+                                                    disabled={isLoading || isUploadingImage}
+                                                />
+                                            </div>
+                                            <div className="flex-shrink-0">
+                                                <button
+                                                    onClick={handleSendMessage}
+                                                    disabled={(!newMessage.trim() && !selectedImage) || isLoading || isUploadingImage}
+                                                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                                    style={{
+                                                        minHeight: '40px',
+                                                        maxHeight: '40px',
+                                                        height: '40px'
+                                                    }}
+                                                >
+                                                    <PaperAirplaneIcon className="h-4 w-4" />
+                                                    <span>Send</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </>

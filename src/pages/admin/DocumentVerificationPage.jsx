@@ -533,7 +533,7 @@ const DocumentVerificationPage = () => {
                                                                     const dateField = document.submittedAt || document.createdAt || document.uploadedAt || document.uploadDate || document.date;
                                                                     if (dateField) {
                                                                         try {
-                                                                            return new Date(dateField).toLocaleDateString();
+                                                                            return new Date(dateField).toLocaleDateString('en-US');
                                                                         } catch (e) {
                                                                             return 'Invalid Date';
                                                                         }
@@ -781,7 +781,7 @@ const DocumentVerificationPage = () => {
                                                 const dateField = selectedDocument.submittedAt || selectedDocument.createdAt || selectedDocument.uploadedAt || selectedDocument.uploadDate || selectedDocument.date;
                                                 if (dateField) {
                                                     try {
-                                                        return new Date(dateField).toLocaleString();
+                                                        return new Date(dateField).toLocaleString('en-US');
                                                     } catch (e) {
                                                         return 'Invalid Date';
                                                     }
@@ -883,7 +883,10 @@ const DocumentVerificationPage = () => {
                                             <button
                                                 onClick={() => {
                                                     // TODO: Implement AI verification
-                                                    toast.info('AI verification feature coming soon!');
+                                                    toast('AI verification feature coming soon!', {
+                                                        icon: '🤖',
+                                                        duration: 3000
+                                                    });
                                                 }}
                                                 disabled={processingAction === (selectedDocument._id || selectedDocument.id)}
                                                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"

@@ -42,11 +42,11 @@ const NotificationsPage = () => {
             // Map frontend filter values to backend notification types
             const typeMapping = {
                 'all': undefined,
-                'delivery': 'delivery_assigned',
-                'payment': 'payment_received',
-                'earnings': 'earnings_updated',
-                'account': 'account_updated',
-                'document': 'document_verified'
+                'delivery': ['delivery_assigned', 'delivery_status_changed', 'delivery_completed', 'delivery_cancelled', 'delivery_created', 'delivery_broadcast'],
+                'payment': ['payment_received', 'payment_failed', 'payment_processed', 'payment_refunded'],
+                'earnings': ['earnings_updated', 'earnings_paid', 'earnings_calculated'],
+                'account': ['account_updated', 'profile_updated', 'status_changed'],
+                'document': ['document_uploaded', 'document_approved', 'document_rejected', 'document_expired']
             };
 
             const mappedType = typeMapping[filter];
@@ -60,7 +60,8 @@ const NotificationsPage = () => {
             const response = await apiService.getDriverNotifications({
                 page: currentPage,
                 limit: itemsPerPage,
-                type: mappedType
+                type: mappedType,
+                filter: filter // Pass the filter for backend processing
             });
 
             console.log('🔔 DriverNotificationsPage: API response:', response);
@@ -135,27 +136,49 @@ const NotificationsPage = () => {
         checkConnection();
         const connectionInterval = setInterval(checkConnection, 30000); // Reduced from 5s to 30s
 
-        // Listen for new notifications
+        // Listen for new notifications with deduplication
         socketService.on('new-notification', (data) => {
             console.log('🔔 DriverNotificationsPage: Received new notification:', data);
 
-            // Play sound for new notifications
-            soundService.playSound('notification');
+            // Skip driver messages - they should go to messaging system
+            if (data._routeToMessaging ||
+                data.type === 'driver-message' ||
+                data.type === 'message' ||
+                data.senderType === 'driver' ||
+                data.message?.includes('Message from') ||
+                data.message?.includes('💬')) {
+                console.log('🔔 DriverNotificationsPage: Skipping driver message notification');
+                return;
+            }
 
-            // Add new notification to the top of the list
-            const newNotification = {
-                _id: data._id || Date.now().toString(),
-                title: data.title || 'New Notification',
-                message: data.message || 'You have a new notification',
-                type: data.type || 'notification',
-                priority: data.priority || 'medium',
-                isRead: false,
-                createdAt: data.createdAt || new Date().toISOString(),
-                metadata: data.metadata || {}
-            };
+            // Check for duplicates
+            setNotifications(prev => {
+                const exists = prev.some(n =>
+                    n._id === data._id ||
+                    (n.title === data.title && n.message === data.message && n.type === data.type)
+                );
+                if (exists) {
+                    console.log('🔔 DriverNotificationsPage: Duplicate notification detected, skipping');
+                    return prev;
+                }
 
-            setNotifications(prev => [newNotification, ...prev.slice(0, -1)]);
-            setUnreadCount(prev => prev + 1);
+                // Play sound for new notifications
+                soundService.playSound('notification');
+
+                const newNotification = {
+                    _id: data._id || Date.now().toString(),
+                    title: data.title || 'New Notification',
+                    message: data.message || 'You have a new notification',
+                    type: data.type || 'notification',
+                    priority: data.priority || 'medium',
+                    isRead: false,
+                    createdAt: data.createdAt || new Date().toISOString(),
+                    metadata: data.metadata || {}
+                };
+
+                setUnreadCount(prevCount => prevCount + 1);
+                return [newNotification, ...prev.slice(0, -1)];
+            });
         });
 
         // Listen for delivery assignments
@@ -604,7 +627,7 @@ const NotificationsPage = () => {
         } else if (diffInHours < 24) {
             return `${Math.floor(diffInHours)} hours ago`;
         } else {
-            return date.toLocaleDateString();
+            return date.toLocaleDateString('en-US');
         }
     };
 
@@ -788,8 +811,13 @@ const NotificationsPage = () => {
                 <div className="mt-2 text-xs text-gray-500">
                     {filter === 'all' ?
                         `Showing all notifications (${totalItems} total)` :
-                        `Showing ${filter} notifications (${paginatedNotifications.length} found)`
+                        `Showing ${filter} notifications (${paginatedNotifications.length} of ${totalItems} total)`
                     }
+                    {paginatedNotifications.length > 0 && (
+                        <span className="ml-2 text-green-600">
+                            • {paginatedNotifications.filter(n => !n.isRead).length} unread
+                        </span>
+                    )}
                 </div>
             </div>
 

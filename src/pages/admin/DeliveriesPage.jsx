@@ -1999,7 +1999,7 @@ Student Delivery Team`;
                                                     Delivery Location Description
                                                 </label>
                                                 <textarea
-                                                    placeholder="Describe the delivery location (e.g., 'Kucuk Center, 3rd floor office', 'House with blue gate', 'Leave with receptionist')"
+                                                    placeholder="Describe the delivery location (e.g., 'Terminal/City Center, 3rd floor office', 'House with blue gate', 'Leave with receptionist')"
                                                     value={formData.deliveryLocationDescription || ''}
                                                     onChange={(e) => setFormData({ ...formData, deliveryLocationDescription: e.target.value })}
                                                     rows="2"

@@ -140,7 +140,7 @@ const AdminDashboard = () => {
             leaderboardText += `Total Drivers: ${topDrivers.length}\n`;
             leaderboardText += `Total Earnings: ${formatCurrency(topDrivers.reduce((sum, driver) => sum + (driver.totalEarnings || 0), 0))}\n`;
             leaderboardText += `Total Deliveries: ${topDrivers.reduce((sum, driver) => sum + (driver.totalDeliveries || 0), 0)}\n\n`;
-            leaderboardText += `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}\n\n`;
+            leaderboardText += `Generated on ${new Date().toLocaleDateString('en-US')} at ${new Date().toLocaleTimeString('en-US')}\n\n`;
             leaderboardText += `📞 Need help? Contact us:\n`;
             leaderboardText += `WhatsApp: +90 533 832 97 85\n`;
             leaderboardText += `Instagram: @greepit`;

@@ -59,8 +59,20 @@ const SimpleDriverNotifications = () => {
         socketService.off('delivery_update');
         socketService.off('system_alert');
 
-        // Listen for general notifications
+        // Listen for general notifications with better filtering
         socketService.on('notification', (data) => {
+            // Skip driver messages and low priority notifications
+            if (data._routeToMessaging ||
+                data.type === 'driver-message' ||
+                data.type === 'message' ||
+                data.senderType === 'driver' ||
+                data.message?.includes('Message from') ||
+                data.message?.includes('💬') ||
+                (data.priority === 'low' && data.type !== 'delivery')) {
+                console.log('🔔 SimpleDriverNotifications: Skipping notification:', data.type);
+                return;
+            }
+
             const notification = notificationManager.processNotification({
                 ...data,
                 message: data.message || 'New notification received'

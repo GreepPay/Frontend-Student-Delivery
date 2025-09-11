@@ -52,7 +52,7 @@ const LeaderboardPage = () => {
         { id: 'delivery', name: 'Delivery Masters', icon: ChartBarIcon, color: 'from-blue-600 to-indigo-700' },
         { id: 'referrals', name: 'Referral Kings', icon: UserGroupIcon, color: 'from-emerald-600 to-teal-700' },
         { id: 'earnings', name: 'Top Earners', icon: CurrencyDollarIcon, color: 'from-green-600 to-emerald-700' },
-        { id: 'rating', name: 'Rating Stars', icon: StarIcon, color: 'from-yellow-500 to-orange-600' }
+        { id: 'rating', name: 'Performance Stars', icon: StarIcon, color: 'from-yellow-500 to-orange-600' }
     ];
 
     const periods = [
@@ -371,52 +371,61 @@ const LeaderboardPage = () => {
                 return;
             }
 
-            // Create a temporary container for the export
+            // Create a temporary container for the export (Instagram 1:1 format)
             const exportContainer = document.createElement('div');
             exportContainer.style.cssText = `
                 position: fixed;
                 top: -9999px;
                 left: -9999px;
-                width: 1200px;
-                height: 800px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 40px;
+                width: 1080px;
+                height: 1080px;
+                background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 25%, #45b7d1 50%, #96ceb4 75%, #feca57 100%);
+                padding: 60px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 color: white;
                 z-index: -1;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             `;
 
-            // Create the header section
+            // Create the header section with bubbly design
             const header = document.createElement('div');
             header.style.cssText = `
                 text-align: center;
-                margin-bottom: 40px;
-                padding: 30px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 20px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin-bottom: 30px;
+                padding: 40px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+                border-radius: 30px;
+                backdrop-filter: blur(20px);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             `;
 
             const title = document.createElement('h1');
             title.textContent = `${categories.find(c => c.id === selectedCategory)?.name || 'Leaderboard'}`;
             title.style.cssText = `
-                font-size: 48px;
-                font-weight: 800;
-                margin: 0 0 10px 0;
-                background: linear-gradient(45deg, #FFD700, #FFA500);
+                font-size: 56px;
+                font-weight: 900;
+                margin: 0 0 20px 0;
+                background: linear-gradient(45deg, #fff, #ffeb3b, #ff9800, #e91e63);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+                letter-spacing: 2px;
             `;
 
             const subtitle = document.createElement('p');
             subtitle.textContent = `${periods.find(p => p.id === selectedPeriod)?.name || 'This Month'} • ${currentData.length} Participants`;
             subtitle.style.cssText = `
-                font-size: 24px;
-                margin: 0;
-                opacity: 0.9;
-                font-weight: 300;
+                font-size: 28px;
+                margin: 0 0 15px 0;
+                opacity: 0.95;
+                font-weight: 700;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+                background: linear-gradient(45deg, #fff, #e3f2fd);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: 1px;
             `;
 
             const timestamp = document.createElement('p');
@@ -438,13 +447,13 @@ const LeaderboardPage = () => {
             header.appendChild(subtitle);
             header.appendChild(timestamp);
 
-            // Create summary stats section
+            // Create summary stats section with bubbly design
             const summaryStats = document.createElement('div');
             summaryStats.style.cssText = `
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
-                margin-bottom: 40px;
+                gap: 25px;
+                margin-bottom: 30px;
             `;
 
             const totalDrivers = currentData.length;
@@ -453,38 +462,45 @@ const LeaderboardPage = () => {
             const avgRating = (currentData.reduce((sum, driver) => sum + (driver.rating || 0), 0) / currentData.length).toFixed(1);
 
             const stats = [
-                { label: 'Total Drivers', value: totalDrivers, color: '#3B82F6' },
-                { label: 'Total Deliveries', value: totalDeliveries, color: '#10B981' },
-                { label: 'Total Earnings', value: `₺${totalEarnings.toLocaleString()}`, color: '#8B5CF6' },
-                { label: 'Avg Rating', value: avgRating, color: '#F59E0B' }
+                { label: 'Total Drivers', value: totalDrivers, color: '#ff6b6b', bgGradient: 'linear-gradient(135deg, #ff6b6b, #ff8e8e)' },
+                { label: 'Total Deliveries', value: totalDeliveries, color: '#4ecdc4', bgGradient: 'linear-gradient(135deg, #4ecdc4, #44a08d)' },
+                { label: 'Total Earnings', value: `₺${totalEarnings.toLocaleString()}`, color: '#45b7d1', bgGradient: 'linear-gradient(135deg, #45b7d1, #96c93d)' },
+                { label: 'Avg Performance', value: avgRating, color: '#feca57', bgGradient: 'linear-gradient(135deg, #feca57, #ff9ff3)' }
             ];
 
             stats.forEach(stat => {
                 const statCard = document.createElement('div');
                 statCard.style.cssText = `
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 15px;
-                    padding: 20px;
+                    background: ${stat.bgGradient};
+                    border-radius: 25px;
+                    padding: 25px;
                     text-align: center;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(20px);
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                    transform: perspective(1000px) rotateX(5deg);
                 `;
 
                 const value = document.createElement('div');
                 value.textContent = stat.value;
                 value.style.cssText = `
-                    font-size: 32px;
-                    font-weight: 700;
-                    color: ${stat.color};
-                    margin-bottom: 5px;
+                    font-size: 36px;
+                    font-weight: 900;
+                    color: white;
+                    margin-bottom: 8px;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                    letter-spacing: 1px;
                 `;
 
                 const label = document.createElement('div');
                 label.textContent = stat.label;
                 label.style.cssText = `
-                    font-size: 14px;
-                    opacity: 0.8;
-                    font-weight: 400;
+                    font-size: 16px;
+                    opacity: 0.95;
+                    font-weight: 700;
+                    color: white;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    letter-spacing: 0.5px;
                 `;
 
                 statCard.appendChild(value);
@@ -492,12 +508,12 @@ const LeaderboardPage = () => {
                 summaryStats.appendChild(statCard);
             });
 
-            // Create leaderboard entries
+            // Create leaderboard entries with bubbly design
             const leaderboardContainer = document.createElement('div');
             leaderboardContainer.style.cssText = `
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 25px;
             `;
 
             currentData.slice(0, 5).forEach((item, index) => {
@@ -507,14 +523,16 @@ const LeaderboardPage = () => {
 
                 const entry = document.createElement('div');
                 entry.style.cssText = `
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 20px;
-                    padding: 25px;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+                    border-radius: 30px;
+                    padding: 30px;
                     display: flex;
                     align-items: center;
-                    gap: 20px;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    gap: 25px;
+                    backdrop-filter: blur(20px);
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+                    transform: perspective(1000px) rotateX(2deg);
                     position: relative;
                     overflow: hidden;
                 `;
@@ -522,20 +540,23 @@ const LeaderboardPage = () => {
                 // Add rank badge
                 const rankBadge = document.createElement('div');
                 rankBadge.style.cssText = `
-                    width: 80px;
-                    height: 80px;
+                    width: 90px;
+                    height: 90px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 24px;
-                    font-weight: 800;
+                    font-size: 28px;
+                    font-weight: 900;
                     flex-shrink: 0;
-                    ${rank === 1 ? 'background: linear-gradient(45deg, #FFD700, #FFA500);' :
-                        rank === 2 ? 'background: linear-gradient(45deg, #C0C0C0, #A0A0A0);' :
-                            rank === 3 ? 'background: linear-gradient(45deg, #CD7F32, #B8860B);' :
-                                'background: linear-gradient(45deg, #3B82F6, #1D4ED8);'}
-                    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+                    ${rank === 1 ? 'background: linear-gradient(135deg, #ff6b6b, #ffeb3b, #ff9800);' :
+                        rank === 2 ? 'background: linear-gradient(135deg, #4ecdc4, #44a08d, #96c93d);' :
+                            rank === 3 ? 'background: linear-gradient(135deg, #45b7d1, #96c93d, #feca57);' :
+                                'background: linear-gradient(135deg, #96ceb4, #feca57, #ff9ff3);'}
+                    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+                    border: 3px solid rgba(255,255,255,0.5);
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
                 `;
                 rankBadge.textContent = `#${rank}`;
 
@@ -548,25 +569,29 @@ const LeaderboardPage = () => {
                 const driverName = document.createElement('div');
                 driverName.textContent = name;
                 driverName.style.cssText = `
-                    font-size: 28px;
-                    font-weight: 700;
-                    margin-bottom: 5px;
+                    font-size: 32px;
+                    font-weight: 900;
+                    margin-bottom: 8px;
                     color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+                    letter-spacing: 1px;
                 `;
 
                 const driverEmail = document.createElement('div');
                 driverEmail.textContent = email;
                 driverEmail.style.cssText = `
-                    font-size: 16px;
-                    opacity: 0.8;
-                    margin-bottom: 10px;
+                    font-size: 18px;
+                    opacity: 0.9;
+                    margin-bottom: 12px;
+                    color: rgba(255,255,255,0.9);
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
                 `;
 
                 // Add performance metrics
                 const metrics = document.createElement('div');
                 metrics.style.cssText = `
                     display: flex;
-                    gap: 30px;
+                    gap: 35px;
                     align-items: center;
                 `;
 
@@ -579,7 +604,7 @@ const LeaderboardPage = () => {
                         case 'referrals':
                             return `${item.totalReferrals || 0} Referrals`;
                         case 'rating':
-                            return `${(item.rating || 0).toFixed(1)} Rating`;
+                            return `${(item.rating || 0).toFixed(1)} Performance`;
                         default:
                             return `${Math.round(item.points || item.overallScore || 0)} Points`;
                     }
@@ -588,19 +613,24 @@ const LeaderboardPage = () => {
                 const metricValue = document.createElement('div');
                 metricValue.textContent = getMetricValue();
                 metricValue.style.cssText = `
-                    font-size: 24px;
-                    font-weight: 600;
-                    color: #FFD700;
+                    font-size: 28px;
+                    font-weight: 900;
+                    color: #ffeb3b;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+                    letter-spacing: 1px;
                 `;
 
                 const metricLabel = document.createElement('div');
                 metricLabel.textContent = selectedCategory === 'delivery' ? 'Total Deliveries' :
                     selectedCategory === 'earnings' ? 'Total Earnings' :
                         selectedCategory === 'referrals' ? 'Total Referrals' :
-                            selectedCategory === 'rating' ? 'Average Rating' : 'Total Points';
+                            selectedCategory === 'rating' ? 'Performance Rating' : 'Total Points';
                 metricLabel.style.cssText = `
-                    font-size: 14px;
-                    opacity: 0.7;
+                    font-size: 16px;
+                    opacity: 0.9;
+                    color: rgba(255,255,255,0.9);
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    font-weight: 600;
                 `;
 
                 const metricContainer = document.createElement('div');
@@ -687,10 +717,10 @@ const LeaderboardPage = () => {
 
             document.body.appendChild(exportContainer);
 
-            // Generate the image
+            // Generate the image (Instagram 1:1 format)
             const canvas = await html2canvas(exportContainer, {
-                width: 1200,
-                height: 800,
+                width: 1080,
+                height: 1080,
                 scale: 2,
                 useCORS: true,
                 allowTaint: true,
@@ -753,7 +783,7 @@ const LeaderboardPage = () => {
                         case 'referrals':
                             return `${item.totalReferrals || 0} referrals`;
                         case 'rating':
-                            return `${(item.rating || 0).toFixed(1)} rating`;
+                            return `${(item.rating || 0).toFixed(1)} performance`;
                         default:
                             return `${Math.round(item.points || item.overallScore || 0)} points`;
                     }
@@ -1100,7 +1130,7 @@ const LeaderboardPage = () => {
                                     <div className="text-lg sm:text-xl font-bold text-yellow-600">
                                         {(currentData.reduce((sum, driver) => sum + (driver.rating || 0), 0) / currentData.length).toFixed(1)}
                                     </div>
-                                    <div className="text-xs text-gray-600">Avg Rating</div>
+                                    <div className="text-xs text-gray-600">Avg Performance</div>
                                 </div>
                             </div>
                         )}
@@ -1210,9 +1240,9 @@ const LeaderboardPage = () => {
                                                         <div className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">
                                                             {item.rating ? parseFloat(item.rating).toFixed(1) : '0.0'}
                                                         </div>
-                                                        <div className="text-xs sm:text-sm text-gray-500">Rating</div>
+                                                        <div className="text-xs sm:text-sm text-gray-500">Performance Rating</div>
                                                         <div className="text-xs text-yellow-400 font-medium">
-                                                            {item.totalDeliveries || 0} Reviews
+                                                            {item.totalDeliveries || 0} Completed Deliveries
                                                         </div>
                                                     </div>
                                                 )}

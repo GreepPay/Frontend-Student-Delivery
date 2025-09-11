@@ -17,25 +17,10 @@ import toast from 'react-hot-toast';
 import RecentActivityWidget from '../../components/admin/RecentActivityWidget';
 
 const ReferralRewardsAdmin = () => {
-    // Helper function to format profit margin display
-    const formatProfitMargin = (profitMargin) => {
-        if (profitMargin === undefined || profitMargin === null) {
-            return '—';
-        }
-
-        if (typeof profitMargin === 'string') {
-            return profitMargin; // "N/A" or other string values
-        }
-
-        if (typeof profitMargin === 'number') {
-            return `${profitMargin.toFixed(1)}%`;
-        }
-
-        return '—';
-    };
 
     const [configurations, setConfigurations] = useState([]);
     const [profitabilityAnalysis, setProfitabilityAnalysis] = useState(null);
+    const [referralStats, setReferralStats] = useState(null);
     const [leaderboard, setLeaderboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
@@ -99,9 +84,10 @@ const ReferralRewardsAdmin = () => {
         try {
             setLoading(true);
 
-            const [configsResponse, analysisResponse, leaderboardResponse] = await Promise.allSettled([
+            const [configsResponse, analysisResponse, statsResponse, leaderboardResponse] = await Promise.allSettled([
                 apiService.getReferralRewardsConfiguration(),
                 apiService.getReferralRewardsProfitabilityAnalysis(),
+                apiService.getReferralRewardsStats(),
                 apiService.getReferralRewardsLeaderboard()
             ]);
 
@@ -113,6 +99,10 @@ const ReferralRewardsAdmin = () => {
 
             if (analysisResponse.status === 'fulfilled' && analysisResponse.value.success) {
                 setProfitabilityAnalysis(analysisResponse.value.data);
+            }
+
+            if (statsResponse.status === 'fulfilled' && statsResponse.value.success) {
+                setReferralStats(statsResponse.value.data.stats);
             }
 
             if (leaderboardResponse.status === 'fulfilled' && leaderboardResponse.value.success) {
@@ -212,7 +202,7 @@ const ReferralRewardsAdmin = () => {
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-green-700">Total Referrals</p>
                                 <p className="text-2xl font-bold text-green-900">
-                                    {profitabilityAnalysis?.totalReferrals || 0}
+                                    {referralStats?.totalReferrals || 0}
                                 </p>
                             </div>
                         </div>
@@ -226,7 +216,7 @@ const ReferralRewardsAdmin = () => {
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-blue-700">Total Points Awarded</p>
                                 <p className="text-2xl font-bold text-blue-900">
-                                    {profitabilityAnalysis?.totalPointsAwarded || 0}
+                                    {referralStats?.totalPointsAwarded || 0}
                                 </p>
                             </div>
                         </div>
@@ -235,12 +225,12 @@ const ReferralRewardsAdmin = () => {
                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm p-6 border border-purple-200">
                         <div className="flex items-center">
                             <div className="p-3 bg-purple-500 rounded-lg">
-                                <ArrowTrendingUpIcon className="h-6 w-6 text-white" />
+                                <CheckCircleIcon className="h-6 w-6 text-white" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-purple-700">Profit Margin</p>
+                                <p className="text-sm font-medium text-purple-700">Completion Rate</p>
                                 <p className="text-2xl font-bold text-purple-900">
-                                    {formatProfitMargin(profitabilityAnalysis?.profitMargin)}
+                                    {referralStats?.completionRate || '0%'}
                                 </p>
                             </div>
                         </div>
@@ -310,7 +300,7 @@ const ReferralRewardsAdmin = () => {
                                     <GiftIcon className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                                     <h3 className="font-semibold text-gray-900 mb-1">Active Referrers</h3>
                                     <p className="text-sm text-gray-600">
-                                        {profitabilityAnalysis?.activeReferrers || 0} drivers
+                                        {referralStats?.activeReferrers || 0} drivers
                                     </p>
                                 </div>
                             </div>
@@ -373,7 +363,7 @@ const ReferralRewardsAdmin = () => {
                                                             {config.status}
                                                         </span>
                                                         <span className="text-xs text-gray-500">
-                                                            Created: {new Date(config.createdAt).toLocaleDateString()}
+                                                            Created: {new Date(config.createdAt).toLocaleDateString('en-US')}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -455,9 +445,9 @@ const ReferralRewardsAdmin = () => {
                                                 <span className="font-bold text-green-600">₺{profitabilityAnalysis.netProfit || 0}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Profit Margin:</span>
+                                                <span className="text-gray-600">Completion Rate:</span>
                                                 <span className="font-medium text-green-600">
-                                                    {formatProfitMargin(profitabilityAnalysis?.profitMargin)}
+                                                    {referralStats?.completionRate || '0%'}
                                                 </span>
                                             </div>
                                         </div>

@@ -20,13 +20,26 @@ const api = axios.create({
     },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token with validation
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
+        const lastActivity = localStorage.getItem('lastActivity');
+
         if (token) {
+            // Check if token is still valid before adding to request
+            if (lastActivity) {
+                const timeSinceLastActivity = Date.now() - parseInt(lastActivity);
+                const oneHour = 60 * 60 * 1000;
+
+                if (timeSinceLastActivity > oneHour) {
+                    console.log('🔄 Token might be stale, but proceeding with request');
+                }
+            }
+
             config.headers.Authorization = `Bearer ${token}`;
         }
+
         console.log('🌐 Axios Request - URL:', config.url);
         console.log('🌐 Axios Request - Base URL:', config.baseURL);
         console.log('🌐 Axios Request - Full URL:', `${config.baseURL}${config.url}`);
@@ -94,12 +107,39 @@ api.interceptors.response.use(
             });
         }
 
-        // Handle authentication errors
+        // Handle authentication errors with retry logic
         if (error.response?.status === 401) {
-            console.warn('🔒 Authentication failed, redirecting to login');
-            // Token expired or invalid
+            console.warn('🔒 Authentication failed (401)');
+
+            // Check if this is a network-related 401 (temporary issue)
+            const isNetworkError = error.code === 'ERR_NETWORK' ||
+                error.message.includes('ERR_CONNECTION_REFUSED') ||
+                error.message.includes('timeout');
+
+            if (isNetworkError) {
+                console.log('🔄 401 error appears to be network-related, not logging out');
+                return Promise.reject(error);
+            }
+
+            // Check if token exists and is recent (less than 1 hour old)
+            const token = localStorage.getItem('token');
+            const lastActivity = localStorage.getItem('lastActivity');
+
+            if (token && lastActivity) {
+                const timeSinceLastActivity = Date.now() - parseInt(lastActivity);
+                const oneHour = 60 * 60 * 1000;
+
+                if (timeSinceLastActivity < oneHour) {
+                    console.log('🔄 Recent activity detected, 401 might be temporary - not logging out');
+                    return Promise.reject(error);
+                }
+            }
+
+            // Only logout if it's a genuine authentication failure
+            console.warn('🔒 Genuine authentication failure, logging out');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('lastActivity');
 
             // Show toast before redirecting
             toast.error('Session expired. Please log in again.', {
@@ -415,7 +455,7 @@ class ApiService {
             return {
                 success: true,
                 data: {
-                    addresses: ['Kucuk', 'Lefkosa', 'Girne', 'Iskele', 'Guzelyurt', 'Lefke'],
+                    addresses: ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara'],
                     transportationMethods: ['walking', 'bicycle', 'motorcycle', 'scooter', 'car', 'other'],
                     universities: [
                         'Eastern Mediterranean University', 'Cyprus West University', 'Cyprus International University',
@@ -1843,6 +1883,34 @@ class ApiService {
         return response.data;
     }
 
+    async calculateBalancedRemittance(driverId, startDate, endDate) {
+        if (!driverId) {
+            console.error('💰 API Service: No driverId provided for balanced remittance calculation');
+            throw new Error('Driver ID is required');
+        }
+        console.log('💰 API Service: Calculating balanced remittance for:', driverId, 'from', startDate, 'to', endDate);
+        const response = await api.get(`/admin/remittances/calculate-balanced/${driverId}?startDate=${startDate}&endDate=${endDate}`);
+        console.log('💰 API Service: Balanced remittance calculation response:', response.data);
+        return response.data;
+    }
+
+    async generateBalancedRemittance(remittanceData) {
+        if (!remittanceData) {
+            console.error('💰 API Service: No remittance data provided for balanced remittance');
+            throw new Error('Remittance data is required');
+        }
+
+        if (!remittanceData.driverId) {
+            console.error('💰 API Service: No driverId in balanced remittance data');
+            throw new Error('Driver ID is required');
+        }
+
+        console.log('💰 API Service: Generating balanced remittance:', remittanceData);
+        const response = await api.post('/admin/remittances/generate-balanced', remittanceData);
+        console.log('💰 API Service: Generate balanced remittance response:', response.data);
+        return response.data;
+    }
+
     // Admin Management endpoints
     async getAdminUsers(params = {}) {
         console.log('👥 API Service: Getting admin users with params:', params);
@@ -1859,24 +1927,39 @@ class ApiService {
     }
 
     async createAdminUser(adminData) {
-        console.log('👥 API Service: Creating admin user:', adminData);
-        const response = await api.post('/admin/management/admins', adminData);
-        console.log('👥 API Service: Create admin response:', response.data);
-        return response.data;
+        try {
+            console.log('👥 API Service: Creating admin user:', adminData);
+            const response = await api.post('/admin/management/admins', adminData);
+            console.log('👥 API Service: Create admin response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('👥 API Service: Error creating admin user:', error);
+            throw error;
+        }
     }
 
     async updateAdminUser(adminId, adminData) {
-        console.log('👥 API Service: Updating admin user:', adminId, adminData);
-        const response = await api.put(`/admin/management/admins/${adminId}`, adminData);
-        console.log('👥 API Service: Update admin response:', response.data);
-        return response.data;
+        try {
+            console.log('👥 API Service: Updating admin user:', adminId, adminData);
+            const response = await api.put(`/admin/management/admins/${adminId}`, adminData);
+            console.log('👥 API Service: Update admin response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('👥 API Service: Error updating admin user:', error);
+            throw error;
+        }
     }
 
     async deleteAdminUser(adminId) {
-        console.log('👥 API Service: Deleting admin user:', adminId);
-        const response = await api.delete(`/admin/management/admins/${adminId}`);
-        console.log('👥 API Service: Delete admin response:', response.data);
-        return response.data;
+        try {
+            console.log('👥 API Service: Deleting admin user:', adminId);
+            const response = await api.delete(`/admin/management/admins/${adminId}`);
+            console.log('👥 API Service: Delete admin response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('👥 API Service: Error deleting admin user:', error);
+            throw error;
+        }
     }
 
     async resetAdminPassword(adminId, data) {

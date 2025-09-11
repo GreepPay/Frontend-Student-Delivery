@@ -94,39 +94,79 @@ const AdminUsersTab = () => {
             const result = await apiService.createAdminUser(adminDataForAPI);
             console.log('📧 AdminUsersTab: Admin creation result:', result);
 
-            // If admin was created successfully and sendInvitation is true, send OTP
-            if (result.success && sendInvitation && result.data?.admin?.email) {
-                try {
-                    console.log('📧 AdminUsersTab: Sending OTP to new admin:', result.data.admin.email);
-                    await apiService.resendOTP(result.data.admin.email);
-                    toast.success('Admin user created successfully and OTP sent to email');
-                } catch (otpError) {
-                    console.error('❌ AdminUsersTab: Error sending OTP:', otpError);
-                    toast.success('Admin user created successfully, but OTP email failed to send');
-                }
-            } else {
-                toast.success('Admin user created successfully');
-            }
+            // Check if admin was created successfully (handle different response structures)
+            const isSuccess = result.success || result.data || (result.status >= 200 && result.status < 300);
 
-            setShowCreateModal(false);
-            fetchAdmins();
+            if (isSuccess) {
+                // If admin was created successfully and sendInvitation is true, send OTP
+                if (sendInvitation && (result.data?.admin?.email || result.admin?.email)) {
+                    try {
+                        const adminEmail = result.data?.admin?.email || result.admin?.email;
+                        console.log('📧 AdminUsersTab: Sending OTP to new admin:', adminEmail);
+                        await apiService.resendOTP(adminEmail);
+                        toast.success('Admin user created successfully and OTP sent to email');
+                    } catch (otpError) {
+                        console.error('❌ AdminUsersTab: Error sending OTP:', otpError);
+                        toast.success('Admin user created successfully, but OTP email failed to send');
+                    }
+                } else {
+                    toast.success('Admin user created successfully');
+                }
+
+                setShowCreateModal(false);
+                fetchAdmins();
+            } else {
+                throw new Error('Admin creation failed: Invalid response structure');
+            }
         } catch (error) {
             console.error('❌ AdminUsersTab: Error creating admin:', error);
-            toast.error('Failed to create admin user');
+
+            // Provide more specific error messages
+            let errorMessage = 'Failed to create admin user';
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     };
 
     const handleUpdateAdmin = async (adminData) => {
         try {
+            console.log('📧 AdminUsersTab: Updating admin data:', adminData);
+            console.log('📧 AdminUsersTab: Selected admin ID:', selectedAdmin.id || selectedAdmin._id);
+
             // Filter out isActive field as it's not allowed by the backend
             const { isActive, ...adminDataWithoutIsActive } = adminData;
-            await apiService.updateAdminUser(selectedAdmin.id || selectedAdmin._id, adminDataWithoutIsActive);
-            toast.success('Admin user updated successfully');
-            setShowEditModal(false);
-            setSelectedAdmin(null);
-            fetchAdmins();
+
+            const result = await apiService.updateAdminUser(selectedAdmin.id || selectedAdmin._id, adminDataWithoutIsActive);
+            console.log('📧 AdminUsersTab: Admin update result:', result);
+
+            // Check if update was successful
+            const isSuccess = result.success || result.data || (result.status >= 200 && result.status < 300);
+
+            if (isSuccess) {
+                toast.success('Admin user updated successfully');
+                setShowEditModal(false);
+                setSelectedAdmin(null);
+                fetchAdmins();
+            } else {
+                throw new Error('Admin update failed: Invalid response structure');
+            }
         } catch (error) {
-            toast.error('Failed to update admin user');
+            console.error('❌ AdminUsersTab: Error updating admin:', error);
+
+            // Provide more specific error messages
+            let errorMessage = 'Failed to update admin user';
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     };
 

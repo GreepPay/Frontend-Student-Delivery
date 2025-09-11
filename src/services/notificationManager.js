@@ -5,6 +5,7 @@
 
 import toast from 'react-hot-toast';
 import soundService from './soundService';
+import { shouldFilterNotification, getNotificationType } from '../config/notifications';
 
 class NotificationManager {
     constructor() {
@@ -22,8 +23,16 @@ class NotificationManager {
         const message = data.message || data.title || '';
         const type = data.type || 'notification';
         const sender = data.sender || data.senderName || data.driverName || '';
+        const id = data._id || data.id || '';
 
-        return `${type}_${message}_${sender}_${timestamp}`.replace(/\s+/g, '_');
+        // Use the actual ID if available, otherwise create a hash
+        if (id) {
+            return id;
+        }
+
+        // Create a more stable hash for deduplication
+        const content = `${type}_${message}_${sender}`.replace(/\s+/g, '_').toLowerCase();
+        return `${content}_${Math.floor(Date.now() / 60000)}`; // Group by minute
     }
 
     /**
@@ -99,20 +108,9 @@ class NotificationManager {
      * Process incoming notification data
      */
     processNotification(data, source = 'unknown') {
-        // Skip driver messages - they should go to messaging system, not notifications
-        if (data._routeToMessaging ||
-            data.type === 'driver-message' ||
-            data.type === 'message' ||
-            data.senderType === 'driver' ||
-            data.message?.includes('Message from') ||
-            data.title?.includes('Message from') ||
-            data.message?.includes('💬') ||
-            data.message?.toLowerCase().includes('how low can you go') ||
-            data.message?.toLowerCase().includes('are you sur') ||
-            data.message?.toLowerCase().includes('hello') ||
-            data.message?.toLowerCase().includes('hey') ||
-            data.message?.toLowerCase().includes('test message')) {
-            console.log(`🔔 NotificationManager: Skipping driver message notification from ${source}:`, data);
+        // Use centralized filtering logic
+        if (shouldFilterNotification(data)) {
+            console.log(`🔔 NotificationManager: Filtering notification from ${source}:`, data.type);
             return null;
         }
 
@@ -124,8 +122,11 @@ class NotificationManager {
 
         console.log(`🔔 NotificationManager: Processing notification from ${source}:`, data);
 
-        // Play sound
-        this.playNotificationSound(data.type, data.priority);
+        // Get notification type configuration
+        const typeConfig = getNotificationType(data.type);
+
+        // Play sound based on type configuration
+        this.playNotificationSound(data.type, data.priority || typeConfig.priority);
 
         // Create standardized notification object
         const notification = {
@@ -133,11 +134,13 @@ class NotificationManager {
             message: data.message || data.title || 'New notification received',
             timestamp: new Date(data.timestamp || Date.now()),
             type: data.type || 'notification',
-            priority: data.priority || 'medium',
+            priority: data.priority || typeConfig.priority,
             isRead: false,
             sender: data.sender || data.senderName || data.driverName || null,
             emergencyData: data.emergencyData || null,
-            metadata: data
+            metadata: data,
+            icon: typeConfig.icon,
+            color: typeConfig.color
         };
 
         return notification;

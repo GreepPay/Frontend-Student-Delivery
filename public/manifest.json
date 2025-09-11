@@ -119,5 +119,13 @@
   },
   "launch_handler": {
     "client_mode": "navigate-existing"
+  },
+  "permissions": [
+    "notifications"
+  ],
+  "notification": {
+    "action": "open",
+    "badge": "/icons/icon-72x72.png",
+    "icon": "/icons/icon-192x192.png"
   }
 }

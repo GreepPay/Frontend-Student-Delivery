@@ -13,10 +13,13 @@ import {
 import Pagination from '../../components/common/Pagination';
 import AdminRemittanceSkeleton from '../../components/common/AdminRemittanceSkeleton';
 import SearchableDropdown from '../../components/common/SearchableDropdown';
+import BalancedRemittanceCalculator from '../../components/admin/BalancedRemittanceCalculator';
 import apiService from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const RemittancePage = () => {
+    const { user } = useAuth();
     const [remittances, setRemittances] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -47,6 +50,7 @@ const RemittancePage = () => {
     const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showBulkGenerateModal, setShowBulkGenerateModal] = useState(false);
+    const [showBalancedCalculator, setShowBalancedCalculator] = useState(false);
     const [selectedRemittance, setSelectedRemittance] = useState(null);
     const [cancelReason, setCancelReason] = useState('');
 
@@ -290,11 +294,17 @@ const RemittancePage = () => {
             return;
         }
 
+        if (!user) {
+            toast.error('User session not found. Please refresh the page and try again.');
+            return;
+        }
+
         try {
             const remittanceData = {
                 driverId: formData.driverId,
                 startDate: formData.startDate,
-                endDate: formData.endDate
+                endDate: formData.endDate,
+                handledByName: user?.name || user?.fullName || 'System Admin'
             };
 
             await apiService.createRemittance(remittanceData);
@@ -433,7 +443,7 @@ const RemittancePage = () => {
     };
 
     const formatDate = (date) => {
-        return new Date(date).toLocaleDateString('tr-TR', {
+        return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -502,6 +512,13 @@ const RemittancePage = () => {
                             >
                                 <PlusIcon className="h-4 w-4 sm:h-3 sm:w-3 mr-1" />
                                 Calculate
+                            </button>
+                            <button
+                                onClick={() => setShowBalancedCalculator(true)}
+                                className="inline-flex items-center px-3 py-2 sm:py-1.5 border border-transparent text-sm sm:text-xs font-medium rounded text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            >
+                                <PlusIcon className="h-4 w-4 sm:h-3 sm:w-3 mr-1" />
+                                Balanced
                             </button>
                             <button
                                 onClick={() => setShowBulkGenerateModal(true)}
@@ -667,7 +684,7 @@ const RemittancePage = () => {
                                                         <div key={index} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
                                                             <div>
                                                                 <span className="text-gray-600">
-                                                                    {new Date(remittance.createdAt).toLocaleDateString()}
+                                                                    {new Date(remittance.createdAt).toLocaleDateString('en-US')}
                                                                 </span>
                                                                 <span className={`ml-2 px-1 py-0.5 rounded text-xs ${remittance.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                                     remittance.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -1205,7 +1222,7 @@ const RemittancePage = () => {
                                                         {driverRemittanceDetails.remittances.slice(0, 3).map((remittance, index) => (
                                                             <div key={index} className="flex items-center justify-between text-xs">
                                                                 <span className="text-gray-600">
-                                                                    {new Date(remittance.createdAt).toLocaleDateString()}
+                                                                    {new Date(remittance.createdAt).toLocaleDateString('en-US')}
                                                                 </span>
                                                                 <span className={`px-2 py-1 rounded-full text-xs ${remittance.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                                     remittance.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -1386,6 +1403,38 @@ const RemittancePage = () => {
                             >
                                 Generate for All Drivers
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Balanced Remittance Calculator Modal */}
+            {showBalancedCalculator && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-gray-900">Balanced Remittance Calculator</h3>
+                                <button
+                                    onClick={() => setShowBalancedCalculator(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <XCircleIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <BalancedRemittanceCalculator
+                                onCalculate={(calculation) => {
+                                    console.log('Balanced remittance calculated:', calculation);
+                                }}
+                                onGenerate={(remittance) => {
+                                    console.log('Balanced remittance generated:', remittance);
+                                    setShowBalancedCalculator(false);
+                                    loadRemittances();
+                                    toast.success('Balanced remittance generated successfully!');
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

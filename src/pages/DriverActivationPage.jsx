@@ -148,7 +148,7 @@ const DriverActivationPage = () => {
                             <div>
                                 <h3 className="text-sm font-medium text-blue-900">Important</h3>
                                 <p className="text-sm text-blue-700 mt-1">
-                                    This invitation expires on {new Date(invitation.expiresAt).toLocaleDateString()}.
+                                    This invitation expires on {new Date(invitation.expiresAt).toLocaleDateString('en-US')}.
                                     Please complete your account setup now.
                                 </p>
                             </div>
@@ -229,12 +229,21 @@ const DriverActivationPage = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                             >
                                 <option value="">Select your service area</option>
-                                <option value="Gonyeli">Gonyeli</option>
-                                <option value="Kucuk">Kucuk</option>
-                                <option value="Lefkosa">Lefkosa</option>
-                                <option value="Famagusta">Famagusta</option>
-                                <option value="Kyrenia">Kyrenia</option>
-                                <option value="Other">Other</option>
+                                <option value="Terminal/City Center">Terminal/City Center</option>
+                                <option value="Kaymakli">Kaymakli</option>
+                                <option value="Hamitköy">Hamitköy</option>
+                                <option value="Yenişehir">Yenişehir</option>
+                                <option value="Kumsal">Kumsal</option>
+                                <option value="Gönyeli">Gönyeli</option>
+                                <option value="Dereboyu">Dereboyu</option>
+                                <option value="Ortaköy">Ortaköy</option>
+                                <option value="Yenikent">Yenikent</option>
+                                <option value="Taskinkoy">Taskinkoy</option>
+                                <option value="Metehan">Metehan</option>
+                                <option value="Gocmenkoy">Gocmenkoy</option>
+                                <option value="Haspolat">Haspolat</option>
+                                <option value="Alaykoy">Alaykoy</option>
+                                <option value="Marmara">Marmara</option>
                             </select>
                             <p className="text-xs text-gray-500 mt-1">This is the area where you'll be providing delivery services</p>
                         </div>

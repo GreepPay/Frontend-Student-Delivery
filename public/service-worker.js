@@ -247,37 +247,84 @@ async function doBackgroundSync() {
 self.addEventListener('push', (event) => {
     console.log('🔔 Service Worker: Push notification received');
 
-    const options = {
-        body: 'You have a new delivery opportunity!',
+    let options = {
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         vibrate: [200, 100, 200],
         data: {
             dateOfArrival: Date.now(),
             primaryKey: 1
-        },
-        actions: [
-            {
-                action: 'explore',
-                title: 'View Details',
-                icon: '/icons/icon-96x96.png'
-            },
-            {
-                action: 'close',
-                title: 'Close',
-                icon: '/icons/icon-96x96.png'
-            }
-        ]
+        }
     };
 
     if (event.data) {
         const data = event.data.json();
-        options.body = data.body || options.body;
+
+        // Handle different notification types
+        if (data.type === 'message') {
+            // Message notification with preview
+            options = {
+                ...options,
+                title: data.title || 'New Message',
+                body: data.body || data.message || 'You have a new message',
+                tag: 'driver-message',
+                requireInteraction: false,
+                actions: [
+                    {
+                        action: 'view-message',
+                        title: 'View Message',
+                        icon: '/icons/icon-96x96.png'
+                    },
+                    {
+                        action: 'close',
+                        title: 'Close',
+                        icon: '/icons/icon-96x96.png'
+                    }
+                ]
+            };
+        } else if (data.type === 'delivery') {
+            // Delivery notification
+            options = {
+                ...options,
+                title: data.title || 'New Delivery',
+                body: data.body || 'You have a new delivery opportunity!',
+                tag: 'delivery-assigned',
+                requireInteraction: false,
+                actions: [
+                    {
+                        action: 'explore',
+                        title: 'View Details',
+                        icon: '/icons/icon-96x96.png'
+                    },
+                    {
+                        action: 'close',
+                        title: 'Close',
+                        icon: '/icons/icon-96x96.png'
+                    }
+                ]
+            };
+        } else {
+            // Default notification
+            options = {
+                ...options,
+                title: data.title || 'Greep SDS',
+                body: data.body || 'You have a new notification',
+                tag: 'general-notification'
+            };
+        }
+
         options.data = { ...options.data, ...data };
+    } else {
+        // Fallback for notifications without data
+        options = {
+            ...options,
+            title: 'Greep SDS',
+            body: 'You have a new notification'
+        };
     }
 
     event.waitUntil(
-        self.registration.showNotification('Greep SDS', options)
+        self.registration.showNotification(options.title, options)
     );
 });
 
@@ -287,7 +334,13 @@ self.addEventListener('notificationclick', (event) => {
 
     event.notification.close();
 
-    if (event.action === 'explore') {
+    if (event.action === 'view-message') {
+        // Open messaging interface for admins
+        event.waitUntil(
+            clients.openWindow('/admin')
+        );
+    } else if (event.action === 'explore') {
+        // Open delivery broadcast for drivers
         event.waitUntil(
             clients.openWindow('/driver/broadcast')
         );
@@ -295,10 +348,19 @@ self.addEventListener('notificationclick', (event) => {
         // Just close the notification
         return;
     } else {
-        // Default action - open the app
-        event.waitUntil(
-            clients.openWindow('/')
-        );
+        // Default action - open the app based on notification type
+        const notificationData = event.notification.data;
+        if (notificationData && notificationData.type === 'message') {
+            // Open admin panel for message notifications
+            event.waitUntil(
+                clients.openWindow('/admin')
+            );
+        } else {
+            // Default - open the app
+            event.waitUntil(
+                clients.openWindow('/')
+            );
+        }
     }
 });
 

@@ -740,9 +740,9 @@ const ReferralPage = () => {
                                                     </p>
                                                     <p className="text-xs text-gray-500">
                                                         {entry.timestamp ?
-                                                            `${new Date(entry.timestamp).toLocaleDateString()} at ${new Date(entry.timestamp).toLocaleTimeString()}` :
+                                                            `${new Date(entry.timestamp).toLocaleDateString('en-US')} at ${new Date(entry.timestamp).toLocaleTimeString('en-US')}` :
                                                             entry.createdAt ?
-                                                                `${new Date(entry.createdAt).toLocaleDateString()} at ${new Date(entry.createdAt).toLocaleTimeString()}` :
+                                                                `${new Date(entry.createdAt).toLocaleDateString('en-US')} at ${new Date(entry.createdAt).toLocaleTimeString('en-US')}` :
                                                                 'Date not available'
                                                         }
                                                     </p>

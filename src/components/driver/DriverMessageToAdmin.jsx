@@ -306,8 +306,8 @@ const DriverMessageToAdmin = () => {
                     {/* Mobile: Full screen overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-50 sm:bg-opacity-50 md:bg-opacity-50" onClick={() => setIsOpen(false)} />
 
-                    {/* Modal Container - Responsive sizing */}
-                    <div className="absolute right-0 top-0 sm:right-4 sm:top-16 w-full h-full sm:w-[768px] sm:h-[600px] md:w-[768px] md:h-[600px] lg:w-[768px] lg:h-[600px] bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border border-gray-200 flex flex-col">
+                    {/* Modal Container - Responsive sizing with safe boundaries */}
+                    <div className="absolute right-0 top-0 sm:right-4 sm:top-16 w-full h-full sm:w-[768px] sm:h-[600px] md:w-[768px] md:h-[600px] lg:w-[768px] lg:h-[600px] bg-white rounded-none sm:rounded-lg shadow-xl border-0 sm:border border-gray-200 flex flex-col max-h-screen overflow-hidden">
                         {/* Header */}
                         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
                             <div className="flex-1 min-w-0">
@@ -373,32 +373,48 @@ const DriverMessageToAdmin = () => {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Message Input */}
-                        <div className="p-3 sm:p-4 border-t border-gray-200">
-                            <div className="flex space-x-2">
-                                <MessageImageUpload
-                                    onImageSelect={handleImageSelect}
-                                    onImageRemove={handleImageRemove}
-                                    isUploading={isUploadingImage}
-                                    resetTrigger={imageUploadResetTrigger}
-                                />
-                                <input
-                                    type="text"
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="Type your message..."
-                                    className="flex-1 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    disabled={isSending || isUploadingImage}
-                                />
-                                <button
-                                    onClick={sendMessage}
-                                    disabled={(!message.trim() && !selectedImage) || isSending || isUploadingImage}
-                                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1 flex-shrink-0"
-                                >
-                                    <PaperAirplaneIcon className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Send</span>
-                                </button>
+                        {/* Message Input - Fixed Size Container */}
+                        <div className="flex-shrink-0 p-3 sm:p-4 border-t border-gray-200 bg-white">
+                            <div className="flex items-end space-x-2 max-w-full">
+                                <div className="flex-shrink-0">
+                                    <MessageImageUpload
+                                        onImageSelect={handleImageSelect}
+                                        onImageRemove={handleImageRemove}
+                                        isUploading={isUploadingImage}
+                                        resetTrigger={imageUploadResetTrigger}
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <input
+                                        type="text"
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="Type your message..."
+                                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                                        style={{
+                                            minHeight: '40px',
+                                            maxHeight: '40px',
+                                            height: '40px'
+                                        }}
+                                        disabled={isSending || isUploadingImage}
+                                    />
+                                </div>
+                                <div className="flex-shrink-0">
+                                    <button
+                                        onClick={sendMessage}
+                                        disabled={(!message.trim() && !selectedImage) || isSending || isUploadingImage}
+                                        className="px-3 sm:px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                                        style={{
+                                            minHeight: '40px',
+                                            maxHeight: '40px',
+                                            height: '40px'
+                                        }}
+                                    >
+                                        <PaperAirplaneIcon className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Send</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

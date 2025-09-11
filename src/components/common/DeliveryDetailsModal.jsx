@@ -332,7 +332,7 @@ const DeliveryDetailsModal = ({
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-600">Estimated Time:</span>
                                         <span className="text-sm font-medium text-gray-900">
-                                            {new Date(delivery.estimatedTime).toLocaleString()}
+                                            {new Date(delivery.estimatedTime).toLocaleString('en-US')}
                                         </span>
                                     </div>
                                 )}
@@ -353,12 +353,12 @@ const DeliveryDetailsModal = ({
                             <div className="space-y-1 text-xs text-gray-600">
                                 <div className="flex justify-between">
                                     <span>Created:</span>
-                                    <span>{new Date(delivery.createdAt).toLocaleString()}</span>
+                                    <span>{new Date(delivery.createdAt).toLocaleString('en-US')}</span>
                                 </div>
                                 {delivery.updatedAt && (
                                     <div className="flex justify-between">
                                         <span>Updated:</span>
-                                        <span>{new Date(delivery.updatedAt).toLocaleString()}</span>
+                                        <span>{new Date(delivery.updatedAt).toLocaleString('en-US')}</span>
                                     </div>
                                 )}
                             </div>

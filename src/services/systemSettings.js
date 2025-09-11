@@ -19,7 +19,15 @@ export const formatCurrency = (amount, currency = 'TRY') => {
   const numAmount = parseFloat(amount);
   if (isNaN(numAmount)) return '₺0.00';
 
-  return new Intl.NumberFormat('tr-TR', {
+  // Use Turkish Lira symbol instead of TRY code
+  if (currency === 'TRY') {
+    return `₺${numAmount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  }
+
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 2,

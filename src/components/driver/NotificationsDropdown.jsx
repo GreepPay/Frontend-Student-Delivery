@@ -55,16 +55,19 @@ const NotificationsDropdown = () => {
     useEffect(() => {
         if (!user) return;
 
-        console.log('🔌 NotificationsDropdown: Setting up WebSocket for real-time updates');
 
         // Connect to socket if not already connected
         if (!socketService.isConnected()) {
             socketService.connect(user._id || user.id, user.userType || user.role);
         }
 
-        // Listen for new notifications
+        // Listen for new notifications (only high priority ones)
         socketService.on('new-notification', (data) => {
-            console.log('🔔 NotificationsDropdown: Received new notification via WebSocket:', data);
+
+            // Only show high priority notifications in the bell dropdown
+            if (data.priority !== 'high' && data.type !== 'delivery_assigned' && data.type !== 'payment') {
+                return;
+            }
 
             // Play sound for new notifications
             soundService.playSound('notification');
@@ -81,16 +84,36 @@ const NotificationsDropdown = () => {
 
             // Add to notifications list if dropdown is open
             if (isOpen) {
-                setNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep only 5 notifications
+                setNotifications(prev => {
+                    // Check for duplicates before adding
+                    const exists = prev.some(n =>
+                        n._id === newNotification._id ||
+                        (n.title === newNotification.title && n.message === newNotification.message)
+                    );
+                    if (exists) {
+                        return prev;
+                    }
+                    return [newNotification, ...prev.slice(0, 4)]; // Keep only 5 notifications
+                });
             }
 
-            // Update unread count
-            setUnreadCount(prev => prev + 1);
+            // Update unread count (with deduplication check and max limit)
+            setUnreadCount(prev => {
+                // Only increment if this is a new notification
+                const isNewNotification = !notifications.some(n =>
+                    n._id === newNotification._id ||
+                    (n.title === newNotification.title && n.message === newNotification.message)
+                );
+                if (isNewNotification) {
+                    // Cap the unread count at 9 to prevent excessive numbers
+                    return Math.min(prev + 1, 9);
+                }
+                return prev;
+            });
         });
 
         // Listen for delivery assignments
         socketService.on('delivery-assigned', (data) => {
-            console.log('🚚 NotificationsDropdown: Received delivery assignment via WebSocket:', data);
 
             // Play delivery sound
             soundService.playSound('delivery');
@@ -107,43 +130,39 @@ const NotificationsDropdown = () => {
 
             // Add to notifications list if dropdown is open
             if (isOpen) {
-                setNotifications(prev => [deliveryNotification, ...prev.slice(0, 4)]);
+                setNotifications(prev => {
+                    // Check for duplicates before adding
+                    const exists = prev.some(n =>
+                        n._id === deliveryNotification._id ||
+                        (n.title === deliveryNotification.title && n.message === deliveryNotification.message)
+                    );
+                    if (exists) {
+                        return prev;
+                    }
+                    return [deliveryNotification, ...prev.slice(0, 4)];
+                });
             }
 
-            // Update unread count
-            setUnreadCount(prev => prev + 1);
+            // Update unread count (with deduplication check and max limit)
+            setUnreadCount(prev => {
+                // Only increment if this is a new notification
+                const isNewNotification = !notifications.some(n =>
+                    n._id === deliveryNotification._id ||
+                    (n.title === deliveryNotification.title && n.message === deliveryNotification.message)
+                );
+                if (isNewNotification) {
+                    // Cap the unread count at 9 to prevent excessive numbers
+                    return Math.min(prev + 1, 9);
+                }
+                return prev;
+            });
         });
 
-        // Listen for admin messages
-        socketService.on('admin-message', (data) => {
-            console.log('💬 NotificationsDropdown: ===== ADMIN MESSAGE RECEIVED =====');
-            console.log('💬 NotificationsDropdown: Received admin message via WebSocket:', data);
-
-            // Play notification sound
-            soundService.playSound('notification');
-
-            const messageNotification = {
-                _id: data._id || Date.now().toString(),
-                title: 'Message from Admin',
-                message: data.message || 'You have a new message from admin',
-                type: 'message',
-                priority: 'medium',
-                isRead: false,
-                createdAt: data.createdAt || new Date().toISOString()
-            };
-
-            // Add to notifications list if dropdown is open
-            if (isOpen) {
-                setNotifications(prev => [messageNotification, ...prev.slice(0, 4)]);
-            }
-
-            // Update unread count
-            setUnreadCount(prev => prev + 1);
-        });
+        // Admin messages are handled by DriverMessageToAdmin component
+        // No need to duplicate handling here
 
         // Listen for notification updates (mark as read, etc.)
         socketService.on('notification-updated', (data) => {
-            console.log('🔔 NotificationsDropdown: Notification updated via WebSocket:', data);
 
             setNotifications(prev =>
                 prev.map(notification =>
@@ -161,7 +180,6 @@ const NotificationsDropdown = () => {
 
         // Listen for notification deletions
         socketService.on('notification-deleted', (notificationId) => {
-            console.log('🔔 NotificationsDropdown: Notification deleted via WebSocket:', notificationId);
 
             setNotifications(prev => {
                 const deletedNotification = prev.find(n => n._id === notificationId);
@@ -174,7 +192,6 @@ const NotificationsDropdown = () => {
 
         // Listen for payment notifications
         socketService.on('payment-received', (data) => {
-            console.log('💰 NotificationsDropdown: Payment received via WebSocket:', data);
 
             // Play notification sound
             soundService.playSound('notification');
@@ -191,23 +208,43 @@ const NotificationsDropdown = () => {
 
             // Add to notifications list if dropdown is open
             if (isOpen) {
-                setNotifications(prev => [paymentNotification, ...prev.slice(0, 4)]);
+                setNotifications(prev => {
+                    // Check for duplicates before adding
+                    const exists = prev.some(n =>
+                        n._id === paymentNotification._id ||
+                        (n.title === paymentNotification.title && n.message === paymentNotification.message)
+                    );
+                    if (exists) {
+                        return prev;
+                    }
+                    return [paymentNotification, ...prev.slice(0, 4)];
+                });
             }
 
-            // Update unread count
-            setUnreadCount(prev => prev + 1);
+            // Update unread count (with deduplication check and max limit)
+            setUnreadCount(prev => {
+                // Only increment if this is a new notification
+                const isNewNotification = !notifications.some(n =>
+                    n._id === paymentNotification._id ||
+                    (n.title === paymentNotification.title && n.message === paymentNotification.message)
+                );
+                if (isNewNotification) {
+                    // Cap the unread count at 9 to prevent excessive numbers
+                    return Math.min(prev + 1, 9);
+                }
+                return prev;
+            });
         });
 
         return () => {
             // Clean up WebSocket listeners
             socketService.off('new-notification');
             socketService.off('delivery-assigned');
-            socketService.off('admin-message');
             socketService.off('notification-updated');
             socketService.off('notification-deleted');
             socketService.off('payment-received');
         };
-    }, [user, isOpen]);
+    }, [user, isOpen, notifications]);
 
     const fetchNotifications = async () => {
         try {
@@ -238,17 +275,14 @@ const NotificationsDropdown = () => {
 
     const markAsRead = async (notificationId) => {
         try {
-            console.log('📖 NotificationsDropdown: Marking notification as read:', notificationId);
 
             // Validate notification ID
             if (!notificationId || typeof notificationId !== 'string') {
-                console.warn('📖 NotificationsDropdown: Invalid notification ID:', notificationId);
                 return;
             }
 
             // Check if already marking this notification as read
             if (markingAsRead.has(notificationId)) {
-                console.log('📖 NotificationsDropdown: Already marking notification as read:', notificationId);
                 return;
             }
 
@@ -309,7 +343,7 @@ const NotificationsDropdown = () => {
         } else if (diffInHours < 24) {
             return `${Math.floor(diffInHours)}h ago`;
         } else {
-            return date.toLocaleDateString();
+            return date.toLocaleDateString('en-US');
         }
     };
 

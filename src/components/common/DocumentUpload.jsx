@@ -424,7 +424,7 @@ const DocumentUpload = ({ documents = {}, onDocumentUploaded, user }) => {
                                                 </div>
                                                 {document?.uploadDate && (
                                                     <span className="text-xs text-gray-500">
-                                                        Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                                                        Uploaded: {new Date(document.uploadDate).toLocaleDateString('en-US')}
                                                     </span>
                                                 )}
                                             </div>

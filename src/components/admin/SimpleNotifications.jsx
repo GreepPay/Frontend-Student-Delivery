@@ -346,7 +346,7 @@ const SimpleNotifications = () => {
         if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
         if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
         if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-        return timestamp.toLocaleDateString();
+        return timestamp.toLocaleDateString('en-US');
     };
 
     const getNotificationIcon = (type) => {
@@ -624,7 +624,7 @@ const SimpleNotifications = () => {
                         <div className="bg-white p-3 rounded-lg border border-gray-200">
                             <div className="flex items-center text-gray-900">
                                 <ClockIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                {selectedNotification?.timestamp.toLocaleString()}
+                                {selectedNotification?.timestamp.toLocaleString('en-US')}
                             </div>
                         </div>
                     </div>

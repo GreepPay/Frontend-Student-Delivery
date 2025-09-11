@@ -84,7 +84,7 @@ const DriverProfilePage = () => {
                 // Use backend lists when available, otherwise sensible defaults
                 const addresses = Array.isArray(data.data.addresses) && data.data.addresses.length > 0
                     ? data.data.addresses
-                    : ['Kucuk', 'Lefkosa', 'Girne', 'Iskele', 'Guzelyurt', 'Lefke'];
+                    : ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara'];
                 setServiceAreas([
                     { value: '', label: 'Select Service Area' },
                     ...addresses.map(addr => ({ value: addr, label: addr }))
@@ -146,12 +146,21 @@ const DriverProfilePage = () => {
             // Set fallback service areas
             const fallbackServiceAreas = [
                 { value: '', label: 'Select Service Area' },
-                { value: 'Kucuk', label: 'Kucuk' },
-                { value: 'Lefkosa', label: 'Lefkosa' },
-                { value: 'Girne', label: 'Girne' },
-                { value: 'Iskele', label: 'Iskele' },
-                { value: 'Guzelyurt', label: 'Guzelyurt' },
-                { value: 'Lefke', label: 'Lefke' }
+                { value: 'Terminal/City Center', label: 'Terminal/City Center' },
+                { value: 'Kaymakli', label: 'Kaymakli' },
+                { value: 'Hamitköy', label: 'Hamitköy' },
+                { value: 'Yenişehir', label: 'Yenişehir' },
+                { value: 'Kumsal', label: 'Kumsal' },
+                { value: 'Gönyeli', label: 'Gönyeli' },
+                { value: 'Dereboyu', label: 'Dereboyu' },
+                { value: 'Ortaköy', label: 'Ortaköy' },
+                { value: 'Yenikent', label: 'Yenikent' },
+                { value: 'Taskinkoy', label: 'Taskinkoy' },
+                { value: 'Metehan', label: 'Metehan' },
+                { value: 'Gocmenkoy', label: 'Gocmenkoy' },
+                { value: 'Haspolat', label: 'Haspolat' },
+                { value: 'Alaykoy', label: 'Alaykoy' },
+                { value: 'Marmara', label: 'Marmara' }
             ];
             setServiceAreas(fallbackServiceAreas);
             console.log('✅ Fallback service areas set:', fallbackServiceAreas);
@@ -1270,7 +1279,7 @@ const DriverProfilePage = () => {
                                                     </p>
                                                     {document?.uploadDate && (
                                                         <p className="text-xs text-gray-400">
-                                                            Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                                                            Uploaded: {new Date(document.uploadDate).toLocaleDateString('en-US')}
                                                         </p>
                                                     )}
                                                 </div>

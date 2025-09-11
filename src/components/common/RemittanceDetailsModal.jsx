@@ -6,7 +6,7 @@ const RemittanceDetailsModal = ({ isOpen, onClose, remittance }) => {
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString('tr-TR', {
+        return new Date(dateString).toLocaleString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -179,6 +179,79 @@ const RemittanceDetailsModal = ({ isOpen, onClose, remittance }) => {
                                     <span className="ml-2 text-green-900">₺{remittance.totalDriverEarnings?.toLocaleString() || '0'}</span>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Balanced Remittance Information */}
+                    {remittance.remittanceType === 'balanced' && (
+                        <div className="bg-purple-50 rounded-lg p-4">
+                            <div className="flex items-center space-x-2 mb-3">
+                                <span className="text-sm font-medium text-purple-700">Balanced Remittance Details</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                    <div className="text-sm font-medium text-red-900 mb-1">Cash Remittance Owed</div>
+                                    <div className="text-lg font-bold text-red-600">
+                                        ₺{remittance.cashRemittanceOwed?.toLocaleString() || '0'}
+                                    </div>
+                                    <div className="text-xs text-red-700">Driver owes company</div>
+                                </div>
+
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                    <div className="text-sm font-medium text-green-900 mb-1">Non-Cash Earnings Owed</div>
+                                    <div className="text-lg font-bold text-green-600">
+                                        ₺{remittance.nonCashEarningsOwed?.toLocaleString() || '0'}
+                                    </div>
+                                    <div className="text-xs text-green-700">Company owes driver</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="text-sm font-medium text-blue-900 mb-1">Net Remittance Amount</div>
+                                <div className="text-xl font-bold text-blue-600">
+                                    ₺{Math.abs(remittance.netRemittanceAmount || 0).toLocaleString()}
+                                </div>
+                                <div className="text-xs text-blue-700">
+                                    {remittance.netRemittanceAmount > 0 ? 'Driver owes company' :
+                                        remittance.netRemittanceAmount < 0 ? 'Company owes driver' :
+                                            'Balanced (no remittance needed)'}
+                                </div>
+                            </div>
+
+                            {remittance.breakdown && (
+                                <div className="mt-4 bg-white border border-gray-200 rounded-lg p-3">
+                                    <div className="text-sm font-medium text-gray-900 mb-2">Breakdown</div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                        <div>
+                                            <div className="font-medium text-gray-700 mb-1">Cash Deliveries</div>
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between">
+                                                    <span>Count:</span>
+                                                    <span>{remittance.breakdown.cash?.count || 0}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Total:</span>
+                                                    <span>₺{remittance.breakdown.cash?.totalAmount?.toLocaleString() || '0'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium text-gray-700 mb-1">Non-Cash Deliveries</div>
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between">
+                                                    <span>Count:</span>
+                                                    <span>{remittance.breakdown.nonCash?.count || 0}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Total:</span>
+                                                    <span>₺{remittance.breakdown.nonCash?.totalAmount?.toLocaleString() || '0'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
