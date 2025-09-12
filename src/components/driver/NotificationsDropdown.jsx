@@ -56,9 +56,12 @@ const NotificationsDropdown = () => {
         if (!user) return;
 
 
-        // Connect to socket if not already connected
-        if (!socketService.isConnected()) {
+        // Connect to socket if not already connected or connecting
+        if (!socketService.isConnected() && !socketService.isConnecting()) {
+            console.log('🔌 NotificationsDropdown: Connecting to socket...');
             socketService.connect(user._id || user.id, user.userType || user.role);
+        } else {
+            console.log('🔌 NotificationsDropdown: Socket already connected or connecting, skipping...');
         }
 
         // Listen for new notifications (only high priority ones)

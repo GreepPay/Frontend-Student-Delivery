@@ -55,6 +55,27 @@ const DriverProfilePage = () => {
     const [transportationMethods, setTransportationMethods] = useState([]);
     const [universities, setUniversities] = useState([]);
 
+    // Debug formData changes
+    useEffect(() => {
+        console.log('🔍 ProfilePage: formData changed:', formData);
+    }, [formData]);
+
+    // Debug formData.transportationArea changes
+    useEffect(() => {
+        console.log('🔍 ProfilePage: formData.transportationArea changed to:', formData.transportationArea);
+    }, [formData.transportationArea]);
+
+    // Debug formData.fullName changes
+    useEffect(() => {
+        console.log('🔍 ProfilePage: formData.fullName changed to:', formData.fullName);
+    }, [formData.fullName]);
+
+    // Debug profile.transportation.area changes
+    useEffect(() => {
+        console.log('🔍 ProfilePage: profile.transportation.area changed to:', profile?.profile?.transportation?.area);
+        console.log('🔍 ProfilePage: profile.address changed to:', profile?.profile?.address);
+    }, [profile?.profile?.transportation?.area, profile?.profile?.address]);
+
     // Helper function to normalize transportation method values
     const normalizeTransportationMethod = (method) => {
         if (!method) return '';
@@ -84,7 +105,7 @@ const DriverProfilePage = () => {
                 // Use backend lists when available, otherwise sensible defaults
                 const addresses = Array.isArray(data.data.addresses) && data.data.addresses.length > 0
                     ? data.data.addresses
-                    : ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara', 'Kucuk'];
+                    : ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara'];
                 setServiceAreas([
                     { value: '', label: 'Select Service Area' },
                     ...addresses.map(addr => ({ value: addr, label: addr }))
@@ -320,15 +341,49 @@ const DriverProfilePage = () => {
                 });
 
                 setProfile(data.data);
-                setFormData({
+
+                // Debug the transportation area field
+                console.log('🔍 Profile fetch - transportation area debug:', {
+                    transportationArea: data.data.profile?.transportation?.area,
+                    address: data.data.profile?.address,
+                    rootAddress: data.data.address,
+                    serviceArea: data.data.profile?.serviceArea,
+                    fullTransportation: data.data.profile?.transportation,
+                    profileStructure: data.data.profile,
+                    allPossibleFields: {
+                        'profile.transportation.area': data.data.profile?.transportation?.area,
+                        'profile.address': data.data.profile?.address,
+                        'data.address': data.data.address,
+                        'profile.serviceArea': data.data.profile?.serviceArea
+                    }
+                });
+
+                const formDataToSet = {
                     fullName: data.data.profile?.personalDetails?.fullName || '',
                     email: data.data.profile?.personalDetails?.email || '',
                     phone: data.data.profile?.personalDetails?.phone || '',
                     studentId: data.data.profile?.studentInfo?.studentId || '',
                     university: data.data.profile?.studentInfo?.university || '',
                     transportationMethod: normalizeTransportationMethod(data.data.profile?.transportation?.method || ''),
-                    transportationArea: data.data.profile?.transportation?.area || ''
+                    // Check multiple possible locations for service area (backend inconsistency)
+                    transportationArea: data.data.profile?.transportation?.area ||
+                        data.data.profile?.address ||
+                        data.data.profile?.serviceArea ||
+                        data.data.address ||
+                        ''
+                };
+
+                console.log('🔍 Setting formData with transportationArea:', {
+                    selectedArea: formDataToSet.transportationArea,
+                    allChecks: {
+                        'transportation.area': data.data.profile?.transportation?.area,
+                        'profile.address': data.data.profile?.address,
+                        'profile.serviceArea': data.data.profile?.serviceArea,
+                        'data.address': data.data.address
+                    }
                 });
+
+                setFormData(formDataToSet);
             }
         } catch (error) {
             console.error('❌ Error fetching profile:', error);
@@ -340,7 +395,12 @@ const DriverProfilePage = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        console.log('🔍 ProfilePage: handleInputChange called:', { name, value, eventType: e.type });
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value };
+            console.log('🔍 ProfilePage: FormData updated:', { name, oldValue: prev[name], newValue: value, fullFormData: updated });
+            return updated;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -349,24 +409,73 @@ const DriverProfilePage = () => {
 
         try {
             // Send flat structure instead of nested objects
-            // Remove email and transportationArea fields as they're causing validation errors
+            // Note: Email and transportationArea fields removed as they're not allowed by backend
             const updateData = {
                 fullName: formData.fullName,
                 phone: formData.phone,
                 studentId: formData.studentId,
                 university: formData.university,
-                transportationMethod: formData.transportationMethod
+                transportationMethod: formData.transportationMethod,
+                address: formData.transportationArea // Map transportationArea to address for backend compatibility
             };
 
             console.log('📤 Sending profile update data:', updateData);
+            console.log('🔍 Debug - All formData fields (email and transportationArea excluded from backend):', {
+                fullName: formData.fullName,
+                phone: formData.phone,
+                studentId: formData.studentId,
+                university: formData.university,
+                transportationMethod: formData.transportationMethod,
+                transportationArea: formData.transportationArea,
+                note: 'transportationArea mapped to address field for backend'
+            });
 
             const result = await apiService.updateDriverProfile(updateData);
             console.log('📥 Profile update response:', result);
 
             if (result.success) {
                 toast.success('Profile updated successfully!');
+
+                // Update the local profile state immediately to reflect changes
+                // Note: Email field not updated locally since it's not sent to backend
+                setProfile(prevProfile => {
+                    const updatedProfile = {
+                        ...prevProfile,
+                        profile: {
+                            ...prevProfile?.profile,
+                            personalDetails: {
+                                ...prevProfile?.profile?.personalDetails,
+                                fullName: formData.fullName,
+                                phone: formData.phone
+                                // Email field intentionally omitted - not sent to backend
+                            },
+                            studentInfo: {
+                                ...prevProfile?.profile?.studentInfo,
+                                studentId: formData.studentId,
+                                university: formData.university
+                            },
+                            transportation: {
+                                ...prevProfile?.profile?.transportation,
+                                method: formData.transportationMethod,
+                                area: formData.transportationArea
+                            },
+                            // Also update address field for backend consistency
+                            address: formData.transportationArea
+                        },
+                        // Also update at root level if it exists
+                        address: formData.transportationArea
+                    };
+                    console.log('🔄 Updated local profile state:', {
+                        previousArea: prevProfile?.profile?.transportation?.area,
+                        newArea: formData.transportationArea,
+                        updatedProfile: updatedProfile
+                    });
+                    return updatedProfile;
+                });
+
                 setIsEditing(false);
-                await fetchProfile();
+                // Optionally fetch profile to ensure consistency, but don't wait for it
+                fetchProfile();
             } else {
                 throw new Error(result.message || 'Update failed');
             }
@@ -610,7 +719,19 @@ const DriverProfilePage = () => {
                                 <>
                                     {/* Refresh button removed - WebSocket provides real-time updates */}
                                     <button
-                                        onClick={() => setIsEditing(true)}
+                                        onClick={() => {
+                                            // Initialize form data with current profile values when editing starts
+                                            setFormData({
+                                                fullName: profile?.profile?.personalDetails?.fullName || '',
+                                                email: profile?.profile?.personalDetails?.email || '',
+                                                phone: profile?.profile?.personalDetails?.phone || '',
+                                                studentId: profile?.profile?.studentInfo?.studentId || '',
+                                                university: profile?.profile?.studentInfo?.university || '',
+                                                transportationMethod: normalizeTransportationMethod(profile?.profile?.transportation?.method || ''),
+                                                transportationArea: profile?.profile?.transportation?.area || ''
+                                            });
+                                            setIsEditing(true);
+                                        }}
                                         className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
                                     >
                                         <PencilIcon className="w-4 h-4 mr-2" />
@@ -936,7 +1057,15 @@ const DriverProfilePage = () => {
                                                     type="text"
                                                     name="fullName"
                                                     value={formData.fullName}
-                                                    onChange={handleInputChange}
+                                                    onChange={(e) => {
+                                                        console.log('🔍 ProfilePage: fullName CapitalizedInput onChange:', {
+                                                            name: e.target.name,
+                                                            value: e.target.value,
+                                                            formDataFullName: formData.fullName,
+                                                            isEditing: isEditing
+                                                        });
+                                                        handleInputChange(e);
+                                                    }}
                                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                                                     placeholder="Enter your full name"
                                                     capitalizeMode="words"
@@ -1156,20 +1285,30 @@ const DriverProfilePage = () => {
 
                                     <div>
                                         {isEditing ? (
-                                            <SearchableDropdown
-                                                label="Service Area"
-                                                options={serviceAreas}
-                                                value={formData.transportationArea}
-                                                onChange={(value) => {
-                                                    console.log('🔍 ProfilePage: Service area changed to:', value);
-                                                    setFormData(prev => ({ ...prev, transportationArea: value }));
-                                                }}
-                                                placeholder="Select Service Area"
-                                                searchPlaceholder="Search service areas..."
-                                                loading={false}
-                                                emptyMessage="No service areas available"
-                                                allowClear={true}
-                                            />
+                                            <div>
+                                                {console.log('🔍 ProfilePage: Service areas options:', serviceAreas)}
+                                                {console.log('🔍 ProfilePage: Current formData.transportationArea:', formData.transportationArea)}
+                                                <SearchableDropdown
+                                                    label="Service Area"
+                                                    options={serviceAreas}
+                                                    value={formData.transportationArea}
+                                                    onChange={(value) => {
+                                                        console.log('🔍 ProfilePage: Service area changed to:', value);
+                                                        console.log('🔍 ProfilePage: Previous formData:', formData);
+                                                        setFormData(prev => {
+                                                            const updated = { ...prev, transportationArea: value };
+                                                            console.log('🔍 ProfilePage: Updated formData:', updated);
+                                                            console.log('🔍 ProfilePage: TransportationArea specifically:', updated.transportationArea);
+                                                            return updated;
+                                                        });
+                                                    }}
+                                                    placeholder="Select Service Area"
+                                                    searchPlaceholder="Search service areas..."
+                                                    loading={false}
+                                                    emptyMessage="No service areas available"
+                                                    allowClear={true}
+                                                />
+                                            </div>
                                         ) : (
                                             <>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">Service Area</label>

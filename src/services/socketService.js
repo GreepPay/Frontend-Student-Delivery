@@ -4,24 +4,29 @@ class SocketService {
     constructor() {
         this.socket = null;
         this.connected = false;
+        this.connecting = false; // Add connecting flag
         this.authenticated = false;
         this.initialized = false;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
+        this.socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
     }
 
     connect(userId, userType) {
         // Prevent multiple connections
-        if (this.socket && this.connected) {
-            console.log('🔌 SocketService: Already connected, skipping connection');
+        if (this.connected || this.connecting) {
+            console.log('🔌 SocketService: Already connected or connecting, skipping connection');
+            console.log('🔌 Connection state:', { connected: this.connected, connecting: this.connecting, socketId: this.socket?.id });
             return;
         }
 
         try {
-            // Connect to Socket.IO server
-            const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
-            console.log('🔌 SocketService: Connecting to:', socketUrl);
-            this.socket = io(socketUrl, {
+            this.connecting = true; // Set connecting flag
+            console.log('🔌 SocketService: Connecting to:', this.socketUrl);
+            console.log('🔌 Connection attempt from:', { userId, userType, timestamp: new Date().toISOString() });
+            console.trace('🔌 Socket connection call stack:'); // This will show where the connection is being called from
+
+            this.socket = io(this.socketUrl, {
                 auth: {
                     userId,
                     userType
@@ -31,16 +36,17 @@ class SocketService {
                 reconnection: true,
                 reconnectionAttempts: this.maxReconnectAttempts,
                 reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000
+                reconnectionDelayMax: 5000,
+                forceNew: false // Prevent creating new connections
             });
 
             this.setupEventListeners();
-            this.connected = true;
             this.initialized = true;
 
-            console.log('🔌 Socket connected:', { userId, userType });
+            console.log('🔌 Socket connection initiated:', { userId, userType });
         } catch (error) {
             console.error('Socket connection error:', error);
+            this.connecting = false; // Reset connecting flag on error
         }
     }
 
@@ -50,30 +56,42 @@ class SocketService {
         this.socket.on('connect', () => {
             console.log('🔌 Socket connected successfully');
             this.connected = true;
+            this.connecting = false; // Clear connecting flag
             this.reconnectAttempts = 0;
 
-            // Send explicit authentication event after connection
-            if (this.socket.auth && this.socket.auth.userId) {
-                console.log('🔌 Sending explicit authentication event:', {
-                    userId: this.socket.auth.userId,
-                    userType: this.socket.auth.userType
-                });
-                this.socket.emit('authenticate', {
-                    userId: this.socket.auth.userId,
-                    userType: this.socket.auth.userType
-                });
-            }
+            // Add delay before authentication to ensure backend is ready
+            setTimeout(() => {
+                if (this.socket.auth && this.socket.auth.userId) {
+                    console.log('🔌 Sending explicit authentication event:', {
+                        userId: this.socket.auth.userId,
+                        userType: this.socket.auth.userType
+                    });
+                    this.socket.emit('authenticate', {
+                        userId: this.socket.auth.userId,
+                        userType: this.socket.auth.userType
+                    });
+                }
+            }, 500); // 500ms delay
         });
 
         this.socket.on('disconnect', (reason) => {
             console.log('🔌 Socket disconnected:', reason);
+            console.log('🔌 Disconnect details:', {
+                reason,
+                socketId: this.socket?.id,
+                timestamp: new Date().toISOString(),
+                wasConnected: this.connected,
+                wasConnecting: this.connecting
+            });
             this.connected = false;
+            this.connecting = false; // Clear connecting flag
         });
 
         this.socket.on('connect_error', (error) => {
             console.error('🔌 Socket connection error:', error);
             this.reconnectAttempts++;
             this.connected = false;
+            this.connecting = false; // Clear connecting flag
 
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
                 console.error('🔌 Max reconnection attempts reached. Backend server may not be running.');
@@ -226,10 +244,16 @@ class SocketService {
             this.socket.disconnect();
             this.socket = null;
             this.connected = false;
+            this.connecting = false;
             this.authenticated = false;
             this.initialized = false;
             console.log('🔌 Socket disconnected');
         }
+    }
+
+    // Check if socket is connecting
+    isConnecting() {
+        return this.connecting;
     }
 
     // Check if socket is authenticated

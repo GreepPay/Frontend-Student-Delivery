@@ -29,33 +29,20 @@ const DeliveriesPage = () => {
         try {
             console.log('📱 Sending delivery push notification:', deliveryData);
 
-            // Send push notification via API to backend
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}/admin/send-delivery-notification`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    deliveryId: deliveryData._id,
-                    deliveryCode: deliveryData.deliveryCode,
-                    pickupLocation: deliveryData.pickupLocation,
-                    deliveryLocation: deliveryData.deliveryLocation,
-                    fee: deliveryData.fee,
-                    customerName: deliveryData.customerName,
-                    priority: deliveryData.priority || 'normal',
-                    broadcastRadius: deliveryData.broadcastRadius || 10,
-                    type: 'delivery_broadcast'
-                })
-            });
+            // Use the proper API service method for sending notifications
+            const response = await apiService.sendSystemNotification(
+                `New delivery available: ${deliveryData.deliveryCode} - ${deliveryData.customerName}`,
+                deliveryData.priority || 'normal'
+            );
 
-            if (response.ok) {
+            if (response.success) {
                 console.log('✅ Delivery push notification sent successfully');
             } else {
-                console.error('❌ Failed to send delivery push notification:', response.status);
+                console.error('❌ Failed to send delivery push notification:', response.message);
             }
         } catch (error) {
             console.error('❌ Error sending delivery push notification:', error);
+            // Don't throw the error, just log it since this is not critical for delivery creation
         }
     };
 

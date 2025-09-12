@@ -11,6 +11,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import DevPanel from './components/common/DevPanel';
 import LoginPage from './pages/LoginPage';
 import OTPVerification from './components/auth/OTPVerification';
+import InitialRoute from './components/auth/InitialRoute';
 import AdminLayout from './components/layouts/AdminLayout';
 import DriverLayout from './components/layouts/DriverLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -65,6 +66,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // App component - AuthDebugger removed
   const [showDevPanel, setShowDevPanel] = useState(false);
 
   // Register service worker for PWA functionality
@@ -109,7 +111,8 @@ function App() {
                     <DevPanel isOpen={showDevPanel} onClose={() => setShowDevPanel(false)} />
 
                     <Routes>
-                      <Route path="/" element={<LoginPage />} />
+                      <Route path="/" element={<InitialRoute />} />
+                      <Route path="/login" element={<LoginPage />} />
                       <Route path="/verify-otp" element={<OTPVerification />} />
                       <Route path="/driver/activate/:token" element={<DriverActivationPage />} />
                       <Route path="/test-otp" element={

@@ -124,8 +124,11 @@ export const BroadcastProvider = ({ children }) => {
         console.log('🔌 BroadcastContext: Setting up socket listeners for real-time updates');
 
         // Ensure socket is connected
-        if (!socketService.isConnected()) {
+        if (!socketService.isConnected() && !socketService.isConnecting()) {
+            console.log('🔌 BroadcastContext: Connecting to socket...');
             socketService.connect(user._id || user.id, user.userType || user.role);
+        } else {
+            console.log('🔌 BroadcastContext: Socket already connected or connecting, skipping...');
         }
 
         // Listen for new delivery broadcasts

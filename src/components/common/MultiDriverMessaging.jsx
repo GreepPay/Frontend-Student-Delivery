@@ -903,7 +903,11 @@ const MultiDriverMessaging = () => {
             }
         } else {
             console.log('💬 MultiDriverMessaging: Socket not connected, attempting to connect...');
-            socketService.connect(user._id || user.id, user.userType || user.role);
+            if (!socketService.isConnecting()) {
+                socketService.connect(user._id || user.id, user.userType || user.role);
+            } else {
+                console.log('💬 MultiDriverMessaging: Socket already connecting, skipping...');
+            }
         }
 
         return () => {

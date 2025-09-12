@@ -244,7 +244,6 @@ const DriverActivationPage = () => {
                                 <option value="Haspolat">Haspolat</option>
                                 <option value="Alaykoy">Alaykoy</option>
                                 <option value="Marmara">Marmara</option>
-                                <option value="Kucuk">Kucuk</option>
                             </select>
                             <p className="text-xs text-gray-500 mt-1">This is the area where you'll be providing delivery services</p>
                         </div>

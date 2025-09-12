@@ -41,9 +41,12 @@ const SimpleDriverNotifications = () => {
         }
 
         // Connect to socket
-        if (!socketService.isInitialized() || !socketService.isConnected()) {
+        if (!socketService.isInitialized() || (!socketService.isConnected() && !socketService.isConnecting())) {
             const userId = user._id || user.id;
+            console.log('🔌 SimpleDriverNotifications: Connecting to socket...');
             socketService.connect(userId, user.userType);
+        } else {
+            console.log('🔌 SimpleDriverNotifications: Socket already connected or connecting, skipping...');
         }
 
         // Only set up listeners once

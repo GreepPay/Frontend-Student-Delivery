@@ -96,6 +96,30 @@ const DeliveryBroadcastModal = ({ delivery, onAccept, onClose, onExpire }) => {
         }
     };
 
+    const formatLocation = (location, description) => {
+        // If we have a description, use it
+        if (description && description.trim() && !description.includes('maps.google.com')) {
+            return description;
+        }
+
+        // If location is a Google Maps link, extract coordinates and show a more readable format
+        if (location && location.includes('maps.google.com')) {
+            const coordMatch = location.match(/q=([^&]+)/);
+            if (coordMatch) {
+                const coords = coordMatch[1];
+                return `Location: ${coords}`;
+            }
+        }
+
+        // If location contains coordinates directly
+        if (location && location.includes(',')) {
+            return `Location: ${location}`;
+        }
+
+        // Fallback to the original location or a default message
+        return location || 'Location not specified';
+    };
+
     const handleAccept = async () => {
         try {
             setIsAccepting(true);
@@ -205,12 +229,9 @@ const DeliveryBroadcastModal = ({ delivery, onAccept, onClose, onExpire }) => {
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-gray-900 text-sm mb-1">Pickup Location</h4>
-                                    <p className="text-gray-700 text-sm font-medium">{delivery.pickupLocationDescription || delivery.pickupLocation}</p>
-                                    {delivery.pickupLocationDescription && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {delivery.pickupLocationDescription}
-                                        </p>
-                                    )}
+                                    <p className="text-gray-700 text-sm font-medium">
+                                        {formatLocation(delivery.pickupLocation, delivery.pickupLocationDescription)}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -222,12 +243,9 @@ const DeliveryBroadcastModal = ({ delivery, onAccept, onClose, onExpire }) => {
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-gray-900 text-sm mb-1">Delivery Location</h4>
-                                    <p className="text-gray-700 text-sm font-medium">{delivery.deliveryLocationDescription || delivery.deliveryLocation}</p>
-                                    {delivery.deliveryLocationDescription && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {delivery.deliveryLocationDescription}
-                                        </p>
-                                    )}
+                                    <p className="text-gray-700 text-sm font-medium">
+                                        {formatLocation(delivery.deliveryLocation, delivery.deliveryLocationDescription)}
+                                    </p>
                                 </div>
                             </div>
                         </div>

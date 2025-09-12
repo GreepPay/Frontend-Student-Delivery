@@ -111,11 +111,11 @@ const SimpleNotifications = () => {
         loadExistingNotifications();
 
         // Connect to socket
-        if (!socketService.isConnected()) {
-            //  console.log('🔌 SimpleNotifications: Connecting to socket...');
+        if (!socketService.isConnected() && !socketService.isConnecting()) {
+            console.log('🔌 SimpleNotifications: Connecting to socket...');
             socketService.connect(user._id || user.id, user.userType);
         } else {
-            //console.log('🔌 SimpleNotifications: Socket already connected');
+            console.log('🔌 SimpleNotifications: Socket already connected or connecting, skipping...');
         }
 
         // Register this component with the notification manager

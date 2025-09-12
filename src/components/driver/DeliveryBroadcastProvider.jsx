@@ -244,11 +244,11 @@ export const DeliveryBroadcastProvider = ({ children }) => {
         requestNotificationPermissions();
 
         // Ensure socket is connected
-        if (!socketService.isConnected()) {
+        if (!socketService.isConnected() && !socketService.isConnecting()) {
             console.log('🔌 DeliveryBroadcastProvider: Socket not connected, attempting to connect...');
             socketService.connect(user._id || user.id, user.userType || user.role);
         } else {
-            console.log('🔌 DeliveryBroadcastProvider: Socket already connected');
+            console.log('🔌 DeliveryBroadcastProvider: Socket already connected or connecting');
         }
 
         // Listen for new delivery broadcasts

@@ -74,24 +74,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('lastActivity', Date.now().toString());
     }, []);
 
-    // Verify token with backend
-    const verifyTokenWithBackend = useCallback(async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return false;
-
-        try {
-            const response = await apiService.verifyToken();
-            return response.success;
-        } catch (error) {
-            console.log('🔒 Token verification failed:', error);
-            return false;
-        }
-    }, []);
+    // Note: verifyTokenWithBackend function removed as it's not being used
+    // Token verification is now handled directly in restoreSession
 
     // Restore session from localStorage with enhanced validation
     const restoreSession = useCallback(async () => {
         const savedToken = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
+
+        console.log('🔄 RestoreSession: Starting session restoration...');
 
         if (!savedToken || !savedUser) {
             console.log('ℹ️ No saved session found');
@@ -109,10 +100,20 @@ export const AuthProvider = ({ children }) => {
             }
 
             // Verify token with backend (with fallback for offline)
+            let freshUserData = userData; // Default to cached data
             try {
-                const tokenValid = await verifyTokenWithBackend();
-                if (!tokenValid) {
-                    console.log('🔒 Token verification failed');
+                const response = await apiService.verifyToken();
+                console.log('🔍 Token verification response in restoreSession:', response);
+
+                if (response.success && response.data && response.data.valid) {
+                    console.log('✅ Token is valid, user:', response.data.user);
+                    // Use fresh user data from token verification response
+                    if (response.data.user) {
+                        freshUserData = response.data.user;
+                        console.log('🔄 Using fresh user data from token verification:', freshUserData);
+                    }
+                } else {
+                    console.log('❌ Token validation failed:', response);
                     return false;
                 }
             } catch (error) {
@@ -121,10 +122,13 @@ export const AuthProvider = ({ children }) => {
                 // This prevents hard refresh logouts when the verify-token endpoint doesn't exist
             }
 
-            // Restore the session
-            setUser(userData);
+            // Restore the session with fresh user data
+            setUser(freshUserData);
             setIsAuthenticated(true);
             updateLastActivity();
+
+            // Update localStorage with fresh user data
+            localStorage.setItem('user', JSON.stringify(freshUserData));
 
             console.log('✅ Session restored successfully');
             return true;
@@ -132,7 +136,7 @@ export const AuthProvider = ({ children }) => {
             console.error('❌ Error restoring session:', error);
             return false;
         }
-    }, [isSessionValid, verifyTokenWithBackend, updateLastActivity]);
+    }, [isSessionValid, updateLastActivity]);
 
     const resetInactivityTimer = useCallback(() => {
         updateLastActivity();
@@ -205,23 +209,53 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
             setIsAuthenticated(true);
 
+            // Auto-redirect to appropriate dashboard based on user type
+            console.log('🔄 Auto-redirecting to dashboard for user type:', userData.userType);
+            // Small delay to ensure state is fully updated
+            setTimeout(() => {
+                const currentPath = window.location.pathname;
+                console.log('🔍 Current path before redirect:', currentPath);
+
+                if (userData.userType === 'driver') {
+                    console.log('🚀 Navigating to /driver');
+                    navigate('/driver', { replace: true });
+                } else if (userData.userType === 'admin' || userData.userType === 'super_admin') {
+                    console.log('🚀 Navigating to /admin');
+                    navigate('/admin', { replace: true });
+                }
+            }, 100);
+
             // Initialize socket connection for real-time features
             if (userData._id) {
                 try {
-                    console.log('🔌 Attempting to connect socket for user:', userData._id, 'type:', userData.userType || userData.role);
+                    // Check if already connected or connecting
+                    if (socketService.isConnected() || socketService.isConnecting()) {
+                        console.log('🔌 Socket already connected or connecting, skipping connection...');
+                        console.log('🔌 AuthContext connection state:', {
+                            connected: socketService.isConnected(),
+                            connecting: socketService.isConnecting(),
+                            socketId: socketService.getSocket()?.id
+                        });
+                        return;
+                    }
+
+                    console.log('🔌 AuthContext: Attempting to connect socket for user:', userData._id, 'type:', userData.userType || userData.role);
+                    console.log('🔌 AuthContext: Connection attempt from login flow');
                     socketService.connect(userData._id, userData.userType || userData.role);
 
-                    // Verify connection was established
+                    // Verify connection was established with increased timeout
                     setTimeout(() => {
                         if (socketService.isConnected()) {
                             console.log('✅ Socket connection verified for user:', userData._id);
                         } else {
                             console.error('❌ Socket connection failed for user:', userData._id);
-                            // Try to reconnect
-                            console.log('🔄 Attempting socket reconnection...');
-                            socketService.connect(userData._id, userData.userType || userData.role);
+                            // Only reconnect if not already connecting
+                            if (!socketService.isConnecting()) {
+                                console.log('🔄 Attempting socket reconnection...');
+                                socketService.connect(userData._id, userData.userType || userData.role);
+                            }
                         }
-                    }, 1000);
+                    }, 3000); // Increased from 1000ms
                 } catch (error) {
                     console.warn('⚠️ Socket initialization failed:', error);
                 }
@@ -234,7 +268,7 @@ export const AuthProvider = ({ children }) => {
             console.error('❌ Login failed:', error);
             throw new Error(error.response?.data?.message || 'Login failed');
         }
-    }, [updateLastActivity]);
+    }, [updateLastActivity, navigate]);
 
     const sendOTP = useCallback(async (email, userType) => {
         try {
@@ -272,9 +306,25 @@ export const AuthProvider = ({ children }) => {
                 updateLastActivity();
 
                 // Also verify session is still valid when app becomes active
+                // Only logout if session is significantly expired (more than 1 hour past timeout)
                 if (!isSessionValid()) {
-                    console.log('⚠️ Session expired while app was inactive, logging out');
-                    logout(false, true);
+                    const lastActivity = localStorage.getItem('lastActivity');
+                    if (lastActivity) {
+                        const timeSinceLastActivity = Date.now() - parseInt(lastActivity);
+                        const oneHour = 60 * 60 * 1000;
+                        const isSignificantlyExpired = timeSinceLastActivity > (SESSION_TIMEOUT + oneHour);
+
+                        if (isSignificantlyExpired) {
+                            console.log('⚠️ Session significantly expired while app was inactive, logging out');
+                            logout(false, true);
+                        } else {
+                            console.log('⚠️ Session expired but within grace period, updating activity timestamp');
+                            updateLastActivity();
+                        }
+                    } else {
+                        console.log('⚠️ No lastActivity found, updating activity timestamp');
+                        updateLastActivity();
+                    }
                 }
             }
         };
@@ -311,7 +361,7 @@ export const AuthProvider = ({ children }) => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('auth-logout', handleAuthLogout);
         };
-    }, [isAuthenticated, updateLastActivity, isSessionValid, logout]);
+    }, [isAuthenticated, updateLastActivity, isSessionValid, logout]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Initialize session once on mount - using global flag to prevent duplicates
     useEffect(() => {
@@ -329,41 +379,93 @@ export const AuthProvider = ({ children }) => {
             if (sessionRestored) {
                 console.log('🔄 Session restored, updating activity timestamp');
 
-                // Initialize socket connection for restored session
+                // Auto-redirect to appropriate dashboard based on user type
                 const userData = JSON.parse(localStorage.getItem('user'));
+                if (userData && userData.userType) {
+                    const currentPath = window.location.pathname;
+                    const shouldRedirect = currentPath === '/' || currentPath === '/login';
+
+                    if (shouldRedirect) {
+                        console.log('🔄 Auto-redirecting to dashboard for user type:', userData.userType);
+                        // Small delay to ensure state is fully updated
+                        setTimeout(() => {
+                            const currentPath = window.location.pathname;
+                            console.log('🔍 Current path before session redirect:', currentPath);
+
+                            if (userData.userType === 'driver') {
+                                console.log('🚀 Navigating to /driver');
+                                navigate('/driver', { replace: true });
+                            } else if (userData.userType === 'admin' || userData.userType === 'super_admin') {
+                                console.log('🚀 Navigating to /admin');
+                                navigate('/admin', { replace: true });
+                            }
+                        }, 100);
+                    }
+                }
+
+                // Initialize socket connection for restored session
                 if (userData && userData._id) {
                     try {
-                        console.log('🔌 Attempting to connect socket for restored session:', userData._id, 'type:', userData.userType || userData.role);
+                        // Check if already connected or connecting
+                        if (socketService.isConnected() || socketService.isConnecting()) {
+                            console.log('🔌 Socket already connected or connecting for restored session, skipping...');
+                            console.log('🔌 AuthContext restored session connection state:', {
+                                connected: socketService.isConnected(),
+                                connecting: socketService.isConnecting(),
+                                socketId: socketService.getSocket()?.id
+                            });
+                            return;
+                        }
+
+                        console.log('🔌 AuthContext: Attempting to connect socket for restored session:', userData._id, 'type:', userData.userType || userData.role);
+                        console.log('🔌 AuthContext: Connection attempt from session restoration');
                         socketService.connect(userData._id, userData.userType || userData.role);
 
-                        // Verify connection was established
+                        // Verify connection was established with increased timeout
                         setTimeout(() => {
                             if (socketService.isConnected()) {
                                 console.log('✅ Socket connection verified for restored session:', userData._id);
                             } else {
                                 console.error('❌ Socket connection failed for restored session:', userData._id);
-                                // Try to reconnect
-                                console.log('🔄 Attempting socket reconnection for restored session...');
-                                socketService.connect(userData._id, userData.userType || userData.role);
+                                // Only reconnect if not already connecting
+                                if (!socketService.isConnecting()) {
+                                    console.log('🔄 Attempting socket reconnection for restored session...');
+                                    socketService.connect(userData._id, userData.userType || userData.role);
+                                }
                             }
-                        }, 1000);
+                        }, 3000); // Increased from 1000ms
                     } catch (error) {
                         console.warn('⚠️ Socket initialization failed for restored session:', error);
                     }
                 }
             } else {
                 console.log('ℹ️ No valid session found');
-                // Clear any invalid data but don't redirect if on protected route
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem('lastActivity');
+                // Only clear data if there's actually invalid data, not just missing data
+                const savedToken = localStorage.getItem('token');
+                const savedUser = localStorage.getItem('user');
+
+                // Only clear if there's corrupted or invalid data
+                if (savedToken && !savedUser) {
+                    console.log('🧹 Clearing corrupted token (no user data)');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('lastActivity');
+                } else if (savedUser && !savedToken) {
+                    console.log('🧹 Clearing corrupted user data (no token)');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('lastActivity');
+                } else if (!savedToken && !savedUser) {
+                    console.log('ℹ️ No session data to clear');
+                } else {
+                    console.log('⚠️ Session restoration failed but data exists - keeping for retry');
+                    // Don't clear valid-looking data, just log the issue
+                }
             }
 
             setIsLoading(false);
         };
 
         initializeSession();
-    }, [restoreSession]); // Include dependencies
+    }, [restoreSession, navigate]); // Include dependencies
 
     // Session timeout monitoring with improved logic
     useEffect(() => {
@@ -401,7 +503,7 @@ export const AuthProvider = ({ children }) => {
         // Check less frequently to reduce false positives
         const interval = setInterval(checkSessionTimeout, 60000); // Check every 1 minute
         return () => clearInterval(interval);
-    }, [isAuthenticated, logout, sessionWarning, SESSION_TIMEOUT, WARNING_TIME]);
+    }, [isAuthenticated, logout, sessionWarning]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Activity listeners (optimized with better tracking)
     useEffect(() => {
