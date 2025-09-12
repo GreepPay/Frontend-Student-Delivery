@@ -146,10 +146,11 @@ api.interceptors.response.use(
                 duration: 3000,
             });
 
-            // Small delay to show the toast before redirect
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1000);
+            // Dispatch custom event for AuthContext to handle navigation
+            const logoutEvent = new CustomEvent('auth-logout', {
+                detail: { reason: 'session-expired' }
+            });
+            window.dispatchEvent(logoutEvent);
         }
 
         // Handle forbidden errors (403)
@@ -180,6 +181,12 @@ api.interceptors.response.use(
         if (error.response?.status === 404) {
             console.warn('🔍 API endpoint not found:', error.config?.url);
             const errorMessage = error.response?.data?.message;
+
+            // Don't show error toasts for missing auth endpoints - this is expected
+            if (error.config?.url && error.config.url.includes('/auth/verify-token')) {
+                console.info('💡 verify-token endpoint not implemented yet - this is expected');
+                return Promise.reject(error); // Let the calling code handle it
+            }
 
             // Only show toast for API 404s, not for user-specific 404s
             if (error.config?.url && !error.config.url.includes('/auth/')) {
@@ -281,8 +288,19 @@ class ApiService {
     }
 
     async verifyToken() {
-        const response = await api.get('/auth/verify-token');
-        return response.data;
+        try {
+            const response = await api.get('/auth/verify-token');
+            return response.data;
+        } catch (error) {
+            // If the verify-token endpoint doesn't exist (404), return success
+            // This prevents hard refresh logouts when the endpoint is missing
+            if (error.response?.status === 404) {
+                console.log('⚠️ verify-token endpoint not found, returning success for offline mode');
+                return { success: true, message: 'Endpoint not available, using offline mode' };
+            }
+            // Re-throw other errors
+            throw error;
+        }
     }
 
     // Admin endpoints

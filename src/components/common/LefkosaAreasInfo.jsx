@@ -17,7 +17,8 @@ const LefkosaAreasInfo = ({ showTitle = true, compact = false }) => {
         'Gocmenkoy',
         'Haspolat',
         'Alaykoy',
-        'Marmara'
+        'Marmara',
+        'Kucuk'
     ];
 
     if (compact) {

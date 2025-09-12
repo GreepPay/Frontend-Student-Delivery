@@ -463,12 +463,12 @@ const NotificationsDropdown = () => {
 
                     {notifications.length > 0 && (
                         <div className="p-3 sm:p-4 border-t border-gray-200">
-                            <a
-                                href="/driver/notifications"
+                            <button
+                                onClick={() => navigate('/driver/notifications')}
                                 className="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium"
                             >
                                 View all notifications →
-                            </a>
+                            </button>
                         </div>
                     )}
                 </div>

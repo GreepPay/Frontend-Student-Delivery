@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     MegaphoneIcon,
     ClockIcon,
@@ -20,6 +21,7 @@ import { useBroadcasts } from '../../context/BroadcastContext';
 
 
 const BroadcastPage = () => {
+    const navigate = useNavigate();
     const { formatCurrency } = useSystemSettings();
     const { user } = useAuth();
     const { showSuccess, showError } = useToast();
@@ -201,7 +203,7 @@ const BroadcastPage = () => {
 
                 // Navigate to driver's deliveries page
                 setTimeout(() => {
-                    window.location.href = '/driver/deliveries';
+                    navigate('/driver/deliveries');
                 }, 1500);
             } else {
                 showError(response.message || 'Failed to accept delivery');

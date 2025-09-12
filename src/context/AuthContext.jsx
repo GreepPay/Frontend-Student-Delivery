@@ -116,8 +116,9 @@ export const AuthProvider = ({ children }) => {
                     return false;
                 }
             } catch (error) {
-                console.log('⚠️ Token verification failed (network issue), proceeding with local validation');
-                // Continue with local validation if backend is unreachable
+                console.log('⚠️ Token verification failed (network issue or missing endpoint), proceeding with local validation');
+                // Continue with local validation if backend is unreachable or endpoint is missing
+                // This prevents hard refresh logouts when the verify-token endpoint doesn't exist
             }
 
             // Restore the session
@@ -292,15 +293,23 @@ export const AuthProvider = ({ children }) => {
             }
         };
 
-        // Listen for PWA visibility changes
+        // Handle custom logout events from API service
+        const handleAuthLogout = (event) => {
+            console.log('🔒 Received auth-logout event:', event.detail);
+            logout(false, true); // Don't show toast, force redirect
+        };
+
+        // Listen for PWA visibility changes and custom logout events
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('focus', handleFocus);
         window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('auth-logout', handleAuthLogout);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
             window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('auth-logout', handleAuthLogout);
         };
     }, [isAuthenticated, updateLastActivity, isSessionValid, logout]);
 

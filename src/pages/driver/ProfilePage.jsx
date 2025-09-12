@@ -84,7 +84,7 @@ const DriverProfilePage = () => {
                 // Use backend lists when available, otherwise sensible defaults
                 const addresses = Array.isArray(data.data.addresses) && data.data.addresses.length > 0
                     ? data.data.addresses
-                    : ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara'];
+                    : ['Terminal/City Center', 'Kaymakli', 'Hamitköy', 'Yenişehir', 'Kumsal', 'Gönyeli', 'Dereboyu', 'Ortaköy', 'Yenikent', 'Taskinkoy', 'Metehan', 'Gocmenkoy', 'Haspolat', 'Alaykoy', 'Marmara', 'Kucuk'];
                 setServiceAreas([
                     { value: '', label: 'Select Service Area' },
                     ...addresses.map(addr => ({ value: addr, label: addr }))

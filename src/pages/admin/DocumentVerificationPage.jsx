@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
 import VerifiedBadge from '../../components/common/VerifiedBadge';
 import { isDriverVerified } from '../../utils/verificationHelpers';
@@ -25,6 +26,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const DocumentVerificationPage = () => {
+    const navigate = useNavigate();
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // all, pending, verified, rejected
@@ -151,7 +153,7 @@ const DocumentVerificationPage = () => {
                     toast.error('Documents failed: Authentication required. Please log in again.');
                     // Redirect to login if authentication fails
                     setTimeout(() => {
-                        window.location.href = '/admin/login';
+                        navigate('/');
                     }, 2000);
                 } else if (error.response?.status === 403) {
                     toast.error('Documents failed: Permission denied. Please check your admin privileges.');

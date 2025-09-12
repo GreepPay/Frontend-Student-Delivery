@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     TruckIcon,
     UserIcon,
@@ -24,6 +25,7 @@ import { DeliveriesPageSkeleton } from '../../components/common/SkeletonLoader';
 import toast from 'react-hot-toast';
 
 const MyDeliveries = () => {
+    const navigate = useNavigate();
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -453,13 +455,13 @@ const MyDeliveries = () => {
                 {/* Controls Row */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                     {/* Left side - Available Deliveries link */}
-                    <a
-                        href="/driver/broadcasts"
+                    <button
+                        onClick={() => navigate('/driver/broadcasts')}
                         className="inline-flex items-center justify-center sm:justify-start px-3 py-2 border border-green-300 rounded-lg text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
                     >
                         <MegaphoneIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                         <span className="truncate">Available Deliveries</span>
-                    </a>
+                    </button>
 
                     {/* Right side - View Mode and Filter */}
                     <div className="flex items-center space-x-3">
